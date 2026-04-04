@@ -1,0 +1,9 @@
+# basic requirements for project satya
+fastapi==0.104.1
+uvicorn==0.24.0
+python-dotenv==1.0.0
+sqlalchemy==2.0.23
+
+# baki components ke liye add karinge baad mein
+numpy==2.3.5
+opencv-python==4.10.0.84
