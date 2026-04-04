@@ -10,6 +10,7 @@ contract Tender {
     enum TenderStatus { BIDDING, ACTIVE, COMPLETED, CANCELLED }
     enum MilestoneStatus { PENDING, UNDER_REVIEW, APPROVED }
 
+    // role mapping for multisig
     enum Role {
         NONE,
         ON_SITE_ENGINEER,
@@ -37,7 +38,7 @@ contract Tender {
     address[4] public admins;
     mapping(address => Role) public roles;
 
-    // struct for bid data
+    // ---------------- BIDDING ----------------
     struct Bid {
         address bidder;
         uint256 amount;
@@ -46,15 +47,19 @@ contract Tender {
     Bid[] public bids;
     mapping(address => bool) public hasBid;
 
+    // ---------------- FUNDS ----------------
     uint256 public totalFunds;
 
-    // eip712 setup for multisig signatures
+    // ---------------- EIP712 ----------------
     bytes32 public DOMAIN_SEPARATOR;
-    bytes32 public constant APPROVAL_TYPEHASH = keccak256("Approve(uint256 milestoneId,address tender)");
+
+    bytes32 public constant APPROVAL_TYPEHASH =
+        keccak256("Approve(uint256 milestoneId,address tender)");
 
     mapping(uint256 => mapping(address => bool)) public hasSigned;
     mapping(uint256 => bool) public executed;
 
+    // ---------------- MILESTONES ----------------
     struct Milestone {
         string name;
         uint256 percentage;
@@ -64,14 +69,19 @@ contract Tender {
 
     Milestone[] public milestones;
 
+    // ---------------- EVENTS ----------------
     event Funded(uint256 amount);
     event BidPlaced(address bidder, uint256 amount);
     event ContractorSelected(address contractor, uint256 bid);
     event MilestoneSubmitted(uint256 id);
     event MilestoneExecuted(uint256 id);
 
+    // ---------------- MODIFIERS ----------------
     modifier onlyGovernment() {
-        require(ITenderFactory(factory).isGovernment(msg.sender), "Not government");
+        require(
+            ITenderFactory(factory).isGovernment(msg.sender),
+            "Not government"
+        );
         _;
     }
 
@@ -85,6 +95,7 @@ contract Tender {
         _;
     }
 
+    // ---------------- CONSTRUCTOR ----------------
     constructor(
         address _factory,
         address[] memory _admins,
@@ -96,14 +107,14 @@ contract Tender {
         uint256[] memory _percentages,
         uint256[] memory _deadlines
     ) {
-        // verify admin count and milestones
+        // basic validations
         require(_admins.length == 4, "Need 4 admins");
-        require(_names.length == _percentages.length, "Invalid input");
+        require(_names.length == _percentages.length && _names.length == _deadlines.length, "Invalid milestone input");
 
         factory = _factory;
         admins = [_admins[0], _admins[1], _admins[2], _admins[3]];
-        
-        // assign roles to admins
+
+        // role assignment
         roles[_admins[0]] = Role.ON_SITE_ENGINEER;
         roles[_admins[1]] = Role.COMPLIANCE_OFFICER;
         roles[_admins[2]] = Role.FINANCIAL_AUDITOR;
@@ -114,10 +125,12 @@ contract Tender {
         biddingEndTime = _biddingEndTime;
         retainedPercent = _retainedPercent;
 
-        // domain separator for eip712 sigs
         uint256 chainId;
-        assembly { chainId := chainid() }
+        assembly {
+            chainId := chainid()
+        }
 
+        // domain separator for eip712 sigs
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
@@ -128,7 +141,10 @@ contract Tender {
             )
         );
 
+        uint256 totalPercent;
         for (uint i = 0; i < _names.length; i++) {
+            totalPercent += _percentages[i];
+
             milestones.push(Milestone({
                 name: _names[i],
                 percentage: _percentages[i],
@@ -137,11 +153,28 @@ contract Tender {
             }));
         }
 
+        require(totalPercent == 100, "Percent must be 100");
         tenderStatus = TenderStatus.BIDDING;
     }
 
+    function fundContract() external payable onlyGovernment {
+        require(msg.value > 0, "No funds");
+        totalFunds += msg.value;
+        emit Funded(msg.value);
+    }
+
+    function getRoleName(address user) external view returns (string memory) {
+        Role r = roles[user];
+        if (ITenderFactory(factory).isGovernment(user)) return "Government";
+        if (r == Role.ON_SITE_ENGINEER) return "OnSiteEngineer";
+        if (r == Role.COMPLIANCE_OFFICER) return "ComplianceOfficer";
+        if (r == Role.FINANCIAL_AUDITOR) return "FinancialAuditor";
+        if (r == Role.SANCTIONING_AUTHORITY) return "SanctioningAuthority";
+        if (r == Role.CONTRACTOR) return "Contractor";
+        return "None";
+    }
+
     function placeBid(uint256 amount) external {
-        // check if bidding is active
         require(tenderStatus == TenderStatus.BIDDING, "Not bidding");
         require(block.timestamp < biddingEndTime, "Ended");
         require(!hasBid[msg.sender], "Already bid");
@@ -151,11 +184,15 @@ contract Tender {
         emit BidPlaced(msg.sender, amount);
     }
 
-    function selectContractor(address _contractor, uint256 _winningBid) external payable onlyGovernment {
-        // finalize bidder and move to active status
+    function selectContractor(address _contractor, uint256 _winningBid)
+        external
+        payable
+        onlyGovernment
+    {
         require(block.timestamp >= biddingEndTime, "Not over");
         require(hasBid[_contractor], "Not bidder");
-        require(msg.value == _winningBid, "Amount error");
+        require(_contractor != address(0), "Invalid contractor");
+        require(msg.value == _winningBid, "Incorrect fund amount");
 
         contractor = _contractor;
         roles[_contractor] = Role.CONTRACTOR;
@@ -166,38 +203,65 @@ contract Tender {
         emit ContractorSelected(_contractor, _winningBid);
     }
 
-    function submitMilestone(uint256 id) external onlyContractor onlyActive {
-        // contractor notifies milestone is done
+    function submitMilestone(uint256 id)
+        external
+        onlyContractor
+        onlyActive
+    {
         require(id == currentMilestone, "Wrong id");
         milestones[id].status = MilestoneStatus.UNDER_REVIEW;
         emit MilestoneSubmitted(id);
     }
 
-    function executeMilestone(uint256 id, bytes[] calldata signatures) external {
-        // multisig verification using eip712 recovered addresses
+    // execution requires 4 signatures collected off-chain
+    function executeMilestone(
+        uint256 id,
+        bytes[] calldata signatures
+    ) external {
         require(id == currentMilestone, "Wrong milestone");
-        require(!executed[id], "Already done");
-        require(signatures.length == 4, "Signatures needed");
+        require(!executed[id], "Done");
+        require(signatures.length == 4, "Need 4");
 
-        bytes32 structHash = keccak256(abi.encode(APPROVAL_TYPEHASH, id, address(this)));
-        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash));
+        require(
+            milestones[id].status == MilestoneStatus.UNDER_REVIEW,
+            "Not submitted"
+        );
+
+        bytes32 structHash = keccak256(
+            abi.encode(APPROVAL_TYPEHASH, id, address(this))
+        );
+
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, structHash)
+        );
 
         for (uint i = 0; i < 4; i++) {
+            require(signatures[i].length == 65, "Invalid signature length");
             address signer = recover(digest, signatures[i]);
             require(!hasSigned[id][signer], "Duplicate");
-            Role r = roles[signer];
-            require(r != Role.NONE && r != Role.CONTRACTOR, "Invalid role for signing");
+            require(
+                roles[signer] == Role.ON_SITE_ENGINEER ||
+                roles[signer] == Role.COMPLIANCE_OFFICER ||
+                roles[signer] == Role.FINANCIAL_AUDITOR ||
+                roles[signer] == Role.SANCTIONING_AUTHORITY,
+                "Invalid signer"
+            );
             hasSigned[id][signer] = true;
         }
 
         executed[id] = true;
-        _payout(id);
+        _finalize(id);
         emit MilestoneExecuted(id);
     }
 
-    function recover(bytes32 digest, bytes memory sig) internal pure returns (address) {
-        // ecrecover helper
-        bytes32 r; bytes32 s; uint8 v;
+    function recover(bytes32 digest, bytes memory sig)
+        internal
+        pure
+        returns (address)
+    {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
         assembly {
             r := mload(add(sig, 32))
             s := mload(add(sig, 64))
@@ -206,23 +270,20 @@ contract Tender {
         return ecrecover(digest, v, r, s);
     }
 
-    function _payout(uint256 id) internal {
-        // transfer funds to contractor for approved milestone
+    function _finalize(uint256 id) internal {
         Milestone storage m = milestones[id];
         uint256 payout = (winningBid * m.percentage) / 100;
+        require(address(this).balance >= payout, "Insufficient funds");
+
         (bool sent,) = contractor.call{value: payout}("");
-        require(sent, "Pay error");
+        require(sent, "Payment failed");
+
         m.status = MilestoneStatus.APPROVED;
         currentMilestone++;
-    }
 
-    function getRoleName(address user) external view returns (string memory) {
-        Role r = roles[user];
-        if (r == Role.ON_SITE_ENGINEER) return "OnSiteEngineer";
-        if (r == Role.COMPLIANCE_OFFICER) return "ComplianceOfficer";
-        if (r == Role.FINANCIAL_AUDITOR) return "FinancialAuditor";
-        if (r == Role.SANCTIONING_AUTHORITY) return "SanctioningAuthority";
-        return "None";
+        if (currentMilestone == milestones.length) {
+            tenderStatus = TenderStatus.COMPLETED;
+        }
     }
 
     receive() external payable {}

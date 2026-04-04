@@ -1,0 +1,56 @@
+:root {
+    --c-bg: var(--cream);
+    --c-card: var(--white);
+    --c-border: var(--pink-100);
+}
+
+.contractor-dashboard {
+    background: var(--c-bg);
+    min-height: 100vh;
+    padding: 100px 24px 60px;
+}
+
+.contractor-dashboard__container {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* Header logic yahan handle karinge properly */
+.contractor-header {
+    margin-bottom: 50px;
+    border-bottom: 2px solid var(--c-border);
+    display: flex;
+    justify-content: space-between;
+}
+
+.contractor-header__title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--c-accent);
+}
+
+/* Contract card logic yahan sync karinge */
+.contractor-card {
+    background: var(--c-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+}
+
+/* Milestone submission modal logic */
+.contractor-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(43, 31, 23, 0.55);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contractor-modal {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    padding: 44px 40px 36px;
+    max-width: 520px;
+}

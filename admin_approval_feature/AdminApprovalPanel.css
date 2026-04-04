@@ -1,0 +1,34 @@
+.admin-panel {
+    background: var(--surface-elevated, #ffffff);
+    border-radius: var(--radius-xl, 20px);
+    padding: var(--space-xl, 2rem);
+}
+
+.admin-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed var(--pink-200);
+}
+
+/* Wallet status logic yahan handle karinge */
+.admin-panel__wallet-status {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    background: var(--pink-100);
+}
+
+.admin-panel__btn-connect {
+    background: transparent;
+    border: 1px solid var(--pink-600);
+}
+
+/* Milestone badge logic yahan sync karinge source se */
+.admin-panel__badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+}
+
+.admin-panel__badge--under_review { background: var(--status-ongoing); color: #fff; }
+.admin-panel__badge--approved { background: var(--status-completed); color: #fff; }

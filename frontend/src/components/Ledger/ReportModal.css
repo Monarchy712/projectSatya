@@ -1,0 +1,54 @@
+.report-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(254, 232, 217, 0.75);
+    backdrop-filter: blur(12px) saturate(1.2);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+}
+
+.report-modal {
+    background: var(--white);
+    border: 1px solid var(--pink-100);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-2xl);
+    width: 100%;
+    max-width: 580px;
+    box-shadow: var(--shadow-xl);
+}
+
+/* Header profiling logic yahan handle karinge */
+.report-modal__header {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.report-modal__title {
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.report-modal__textarea {
+    width: 100%;
+    background: var(--gray-50);
+    border: 1.5px solid var(--pink-100);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    margin-top: 10px;
+}
+
+.report-modal__submit {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gray-800), var(--gray-900));
+    color: white;
+    padding: var(--space-md);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 20px;
+}

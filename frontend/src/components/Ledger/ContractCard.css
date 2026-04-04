@@ -1,0 +1,69 @@
+/* ── Contract Card ── */
+.contract-card {
+    background: var(--surface-primary);
+    border: 1px solid var(--pink-100);
+    border-left: 4px solid var(--pink-200);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    transition: all 0.3s ease;
+}
+
+.contract-card:hover {
+    border-color: var(--pink-200);
+    transform: translateY(-2px);
+}
+
+.contract-card__header {
+    padding: var(--space-md) var(--space-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Card content logic yahan styles define honge */
+.contract-card__title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--pink-800);
+}
+
+.contract-card__status {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.contract-card__status--ongoing { color: var(--status-ongoing); background: rgba(255, 179, 71, 0.1); }
+.contract-card__status--completed { color: var(--status-completed); background: rgba(78, 205, 196, 0.1); }
+
+.contract-card__budget-amount {
+    font-family: var(--font-mono);
+    font-weight: 700;
+}
+
+/* progress bar for milestones */
+.contract-card__progress-bar {
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.contract-card__progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-600));
+}
+
+.contract-card__report-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--pink-700);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+}

@@ -1,0 +1,74 @@
+/* ── Ledger Section ── */
+.ledger {
+    position: relative;
+    min-height: 100vh;
+    padding: var(--space-3xl) var(--space-xl);
+    background: var(--ivory);
+    background-image: radial-gradient(var(--pink-100) 1px, transparent 1px);
+    background-size: 20px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.ledger__container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+/* Contractor profile card logic */
+.ledger__profile {
+    background: var(--white);
+    border: 1px solid var(--pink-200);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.ledger__profile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, var(--pink-400), var(--pink-600), var(--gold));
+}
+
+.ledger__profile-header {
+    border-bottom: 2px dashed var(--pink-100);
+    padding-bottom: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.ledger__profile-name {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    color: var(--pink-900);
+}
+
+.ledger__profile-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+}
+
+.ledger__section-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.ledger__section-title h3 {
+    font-family: var(--font-mono);
+    color: var(--pink-800);
+    letter-spacing: 0.3em;
+}
+
+.ledger__section-title-line {
+    height: 1px;
+    flex: 1;
+    background: var(--pink-200);
+}
