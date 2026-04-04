@@ -10,7 +10,7 @@ export default function Hero({ stats }) {
 
   return (
     <section className="hero" id="hero">
-      {/* Background ke visuals aur grid animations yahan hain */}
+      {/* Decorative background elements */}
       <div className="hero__bg-grid" />
       <div className="hero__bg-circle hero__bg-circle--1" />
       <div className="hero__bg-circle hero__bg-circle--2" />
@@ -33,7 +33,7 @@ export default function Hero({ stats }) {
           <span className="hero__cta-arrow">↓</span>
         </a>
 
-        {/* Blockchain stats summary bar */}
+        {/* Stats bar */}
         <div className="hero__stats">
           <div className="hero__stat">
             <span className="hero__stat-number">{stats.totalContractors}</span>
@@ -56,7 +56,7 @@ export default function Hero({ stats }) {
           </div>
         </div>
 
-        {/* Ongoing, Pending aur Completed projects ke status pills */}
+        {/* Status pills */}
         <div className="hero__status-row">
           <div className="hero__status-pill hero__status-pill--ongoing">
             <span className="hero__status-dot hero__status-dot--ongoing" />
@@ -75,7 +75,7 @@ export default function Hero({ stats }) {
 
       </div>
 
-      {/* Niche wala scrolling "live feed" ticker */}
+      {/* Retro terminal tape */}
       <div className="hero__ticker">
         <div className="hero__ticker-track">
           <span>◈ SATYA TRANSPARENCY LEDGER — LIVE DATA FEED ◈ LAST UPDATED: {new Date(stats.lastUpdated).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ◈ ALL RECORDS VERIFIED ◈ PUBLIC ACCESS ENABLED ◈ SATYA TRANSPARENCY LEDGER — LIVE DATA FEED ◈ LAST UPDATED: {new Date(stats.lastUpdated).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ◈ ALL RECORDS VERIFIED ◈ PUBLIC ACCESS ENABLED ◈</span>

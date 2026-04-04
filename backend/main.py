@@ -13,7 +13,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS allow kar rahe hain taki frontend smoothly connect ho sake
+# CORS — allow the Vite dev server
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://localhost:3000"],
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Saari API routes yahan register (mount) ho rahi hain
+# Mount routers
 app.include_router(citizen_router)
 app.include_router(wallet_router)
 app.include_router(contractor_router)
@@ -30,7 +30,7 @@ app.include_router(report_router)
 app.include_router(admin_tasks_router)
 app.include_router(tenders_router)
 
-# Error handling ke liye custom logic, isse user ko readable message milega
+# Custom Error Handlers to ensure CORS headers are present on exceptions
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 

@@ -19,7 +19,7 @@ export default function ContractCard({ contract }) {
 
   return (
     <div className={`contract-card ${expanded ? 'contract-card--expanded' : ''} contract-card--${contract.status}`}>
-      {/* Card ka header jo hamesha dikhta hai */}
+      {/* ── Card Header (Always visible) ── */}
       <div 
         className="contract-card__header" 
         onClick={() => setExpanded(!expanded)}
@@ -45,7 +45,7 @@ export default function ContractCard({ contract }) {
         </div>
       </div>
 
-      {/* Card expand hone par extra details yahan dikhti hain */}
+      {/* ── Expanded Content ── */}
       {expanded && (
         <div className="contract-card__details">
           <div className="contract-card__divider" />
@@ -81,7 +81,7 @@ export default function ContractCard({ contract }) {
             </div>
           </div>
 
-          {/* Project ke milestones yahan track ho rahe hain */}
+          {/* Milestones Tracker */}
           <div className="contract-card__milestones-wrapper">
             <h4 className="contract-card__milestones-title">PROJECT MILESTONES</h4>
             <div className="contract-card__milestones">
@@ -107,7 +107,7 @@ export default function ContractCard({ contract }) {
             </div>
           </div>
 
-          {/* Citizen ke liye quality issue report karne ka button */}
+          {/* Report Button for Citizens */}
           {user?.role === 'citizen' && contract.status === 'completed' && (
             <div className="contract-card__report-section">
               <div className="contract-card__divider" />

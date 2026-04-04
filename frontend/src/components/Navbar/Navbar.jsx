@@ -16,7 +16,7 @@ const AADHAAR_PEOPLE = [
   { name: "Suresh Pillai", dob: "14/02/1986", address: "Chennai, TN", fullAadhaar: "9012 3456 7890", maskedAadhaar: "•••• •••• 7890" }
 ];
 
-// Is component me Aadhaar profile widget hai jo top-right me dikhta hai
+// --- Profile Widget (Moved outside to prevent remounting on Navbar re-renders) ---
 const AadhaarProfile = ({ user }) => {
   const selectedPerson = useMemo(() => {
     if (!user) return AADHAAR_PEOPLE[0];
@@ -83,10 +83,11 @@ export default function Navbar({ user, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Logout process handle ho raha hai, verification aur cleanup ke baad redirect ho jayega
+
   const handleLogoutClick = async () => {
     setShowLogoutConfirm(false);
     setIsLoggingOut(true);
+    // Simulate security cleanup
     await new Promise(r => setTimeout(r, 1200));
     onLogout();
     setIsLoggingOut(false);
@@ -125,7 +126,7 @@ export default function Navbar({ user, onLogout }) {
     <FullScreenLoader isVisible={isLoggingOut} text="Securing Session..." />
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <div className="navbar__inner">
-        {/* Logo aur Brand identity yahan hai */}
+        {/* Logo */}
         <div className="navbar__brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <div className="navbar__logo-mark">
             <span className="navbar__logo-icon">◈</span>
@@ -152,7 +153,7 @@ export default function Navbar({ user, onLogout }) {
               Tenders
             </button>
 
-            {/* Role ke mutabiq dynamic links yahan filter ho rahe hain */}
+            {/* Dynamic Context-Aware Dashboard Links */}
             {showAdminLink && (
               <button
                 className={`navbar__nav-link navbar__nav-link--admin ${isActive('/admin') ? 'navbar__nav-link--active' : ''}`}
@@ -200,7 +201,7 @@ export default function Navbar({ user, onLogout }) {
         <div className="navbar__right">
           {user ? (
             <div className="navbar__user">
-              <AadhaarProfile user={user} />
+              {user?.role === 'citizen' && <AadhaarProfile user={user} />}
               <div className="navbar__logout-group">
                 {showLogoutConfirm ? (
                   <div className="navbar__logout-confirm-pop">

@@ -12,7 +12,7 @@ export default function AuthPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Authentication ke steps yahan state me maintain ho rahe hain
+  // ── State ──
   const [step, setStep] = useState(STEPS.AADHAAR);
   const [aadhaar, setAadhaar] = useState('');
   const [otp, setOtp] = useState('');
@@ -26,7 +26,7 @@ export default function AuthPage() {
   const [pageLoadingVisible, setPageLoadingVisible] = useState(false);
   const [pageLoadingText, setPageLoadingText] = useState('Loading...');
 
-  // Aadhaar number ko standard visual format (XXXX XXXX XXXX) me convert karne ke liye
+  // ── Aadhaar format helper ──
   const formatAadhaar = (val) => {
     const digits = val.replace(/\D/g, '').slice(0, 12);
     return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
@@ -103,7 +103,7 @@ export default function AuthPage() {
     }
   };
 
-  // MetaMask wallet connect karke message sign karwane ki logic
+  // ── MetaMask Sign & Verify ──
   const handleWalletSign = async () => {
     setError('');
     
@@ -146,7 +146,7 @@ export default function AuthPage() {
         ← Back to Home
       </button>
       <div className="auth-container">
-        {/* Left side ka animated "Satya" logo and graphics */}
+        {/* Header / Graphic Left Side */}
         <div className="auth-header">
           <div className="auth-header__graphic">
             {/* Animated Geometry */}
@@ -207,7 +207,7 @@ export default function AuthPage() {
                 <span>or verify as</span>
               </div>
 
-              {/* Contractor aur Admin login ke liye wallet connection buttons */}
+              {/* ── Bottom-right wallet buttons ── */}
               <div className="auth-wallet-btns">
                 <button
                   id="contractor-login-btn"
@@ -242,7 +242,7 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* OTP enter karne wala step */}
+          {/* ── OTP Step ── */}
           {step === STEPS.OTP && (
             <div className="auth-step auth-step--fade-in">
               <button className="auth-back" onClick={handleBack}>← Back</button>
@@ -280,7 +280,7 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Wallet verification aur signing wala final step */}
+          {/* ── Wallet Verification Step ── */}
           {step === STEPS.WALLET_SIGNING && (
             <div className="auth-step auth-step--fade-in auth-step--center">
               <div className="auth-step__header">

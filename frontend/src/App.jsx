@@ -18,7 +18,10 @@ import { getUnifiedLedgerData } from './utils/ledgerData';
 
 import './App.css';
 
-// Is route wrapper se check hota hai ki user ke paas required permission (role) hai ya nahi
+/**
+ * Enhanced Protected Route supporting granular role access.
+ * If user does not meet role requirements, redirects to home or login.
+ */
 function ProtectedRoute({ children, allowedRoles = [] }) {
   const { isAuthenticated, loading, user } = useAuth();
   
@@ -108,10 +111,10 @@ function App() {
       <Route path="/login" element={<AuthPage />} />
       <Route path="/register-contractor" element={<ContractorRegister />} />
       
-      {/* Sabke liye open pages */}
+      {/* Public Pages */}
       <Route path="/tenders" element={<GlobalRoute><TendersPage /></GlobalRoute>} />
       
-      {/* Role ke hisaab se restricted routes */}
+      {/* Role-Specific Protected Routes */}
       <Route 
         path="/admin" 
         element={
