@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg[binary]
+pydantic
+python-dotenv
+python-jose[cryptography]
+eth-account
+web3==6.11.3
+passlib
+setuptools
+pillow
+requests
+python-multipart
+# neon-db-connector-dummy

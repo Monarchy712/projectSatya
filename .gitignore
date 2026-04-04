@@ -1,0 +1,19 @@
+# Project Satya gitignore
+# Mirroring tracking file
+.repo_track.json
+
+# Typical build artifacts
+node_modules/
+dist/
+build/
+.env
+*.db
+__pycache__/
+venv/
+.venv/
+.next/
+.turbo/
+.vercel/
+.npm
+.DS_Store
+*.log
