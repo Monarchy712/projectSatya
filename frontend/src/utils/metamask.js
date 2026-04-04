@@ -1,40 +1,40 @@
 import { BrowserProvider } from 'ethers';
 
 /**
- * Check karinge ki MetaMask installed hai ya nahi browser mein
+ * Check if MetaMask is available in the browser.
  */
 export function isMetaMaskInstalled() {
-    return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
+  return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
 }
 
 /**
- * MetaMask connect karke user ka first account address return karinge
+ * Request MetaMask to connect and return the first account address.
  */
 export async function connectMetaMask() {
-    if (!isMetaMaskInstalled()) {
-        throw new Error('MetaMask install nahi hai, please extension add karinge tabhi chalega.');
-    }
+  if (!isMetaMaskInstalled()) {
+    throw new Error('MetaMask is not installed. Please install the MetaMask browser extension.');
+  }
 
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    if (!accounts || accounts.length === 0) {
-        throw new Error('Account nahi mila, please MetaMask unlock karinge.');
-    }
+  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts found. Please unlock MetaMask.');
+  }
 
-    return accounts[0].toLowerCase();
+  return accounts[0].toLowerCase();
 }
 
 /**
- * Proof of wallet ownership ke liye message sign karinge
- * @param {string} msg - Message containing nonce from backend
+ * Sign a message using MetaMask to prove wallet ownership.
+ * @param {string} message - The message to sign (contains the nonce from backend)
+ * @returns {string} The signature
  */
-export async function signMessage(msg) {
-    if (!isMetaMaskInstalled()) {
-        throw new Error('MetaMask error: not installed.');
-    }
+export async function signMessage(message) {
+  if (!isMetaMaskInstalled()) {
+    throw new Error('MetaMask is not installed.');
+  }
 
-    const provider = new BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    // browser provider use karke signing logic
-    const signature = await signer.signMessage(msg);
-    return signature;
+  const provider = new BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+  const signature = await signer.signMessage(message);
+  return signature;
 }

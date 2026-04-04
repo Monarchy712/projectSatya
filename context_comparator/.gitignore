@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 api_key.txt
 __pycache__/
 *.pyc
+=======
+api_key.txt
+>>>>>>> bb97d8c (full logic flow is working (hopefully))

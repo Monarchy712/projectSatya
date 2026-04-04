@@ -12,4 +12,7 @@ setuptools
 pillow
 requests
 python-multipart
+<<<<<<< HEAD
 # neon-db-connector-dummy
+=======
+>>>>>>> bb97d8c (full logic flow is working (hopefully))

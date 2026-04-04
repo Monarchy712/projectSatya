@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import './Navbar.css';
 
 function Navbar() {
@@ -15,3 +16,212 @@ function Navbar() {
 }
 
 export default Navbar;
+=======
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import FullScreenLoader from '../UI/FullScreenLoader';
+import './Navbar.css';
+
+// --- Profile Widget (Moved outside to prevent remounting on Navbar re-renders) ---
+const AadhaarProfile = ({ user }) => {
+  // Hardcoded per requirements
+  const fullAadhaar = "9342 5678 7836";
+  const maskedAadhaar = "•••• 7836";
+  const roleName = user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || 'Citizen';
+  
+  const details = {
+    name: "Aanya Sharma",
+    dob: "12/08/1990",
+    address: "New Delhi, DL"
+  };
+
+  return (
+    <div className="aadhaar-profile">
+      <div className="aadhaar-profile__trigger">
+        <img 
+          src={`https://api.dicebear.com/7.x/notionists/svg?seed=${details.name}&backgroundColor=ffe4e6`} 
+          alt="Profile Avatar" 
+          className="aadhaar-profile__avatar" 
+        />
+        <div className="aadhaar-profile__text">
+          <span className="aadhaar-profile__role">{roleName}</span>
+          <div className="aadhaar-profile__number-clipper">
+             <span className="aadhaar-profile__text-masked">{maskedAadhaar}</span>
+             <span className="aadhaar-profile__text-full">{fullAadhaar}</span>
+          </div>
+        </div>
+      </div>
+      <div className="aadhaar-profile__dropdown-wrapper">
+        <div className="aadhaar-profile__dropdown">
+          <div className="aadhaar-profile__dropdown-header">
+             <h4>UIDAI Portal</h4>
+             <span className="aadhaar-profile__verified-badge">✓ Verified</span>
+          </div>
+          <div className="aadhaar-profile__dropdown-body">
+             <div className="aadhaar-profile__field">
+               <span className="aadhaar-profile__label">Full Name</span>
+               <span className="aadhaar-profile__value">{details.name}</span>
+             </div>
+             <div className="aadhaar-profile__field">
+               <span className="aadhaar-profile__label">Date of Birth</span>
+               <span className="aadhaar-profile__value">{details.dob}</span>
+             </div>
+             <div className="aadhaar-profile__field">
+               <span className="aadhaar-profile__label">Registered Address</span>
+               <span className="aadhaar-profile__value">{details.address}</span>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function Navbar({ user, onLogout }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [time, setTime] = useState(new Date());
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+
+  const handleLogoutClick = async () => {
+    setIsLoggingOut(true);
+    await new Promise(r => setTimeout(r, 800));
+    onLogout();
+    setIsLoggingOut(false);
+    navigate('/');
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (d) => {
+    return d.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+  };
+
+  const isActive = (path) => location.pathname === path;
+
+  // Role-based link logic
+  const showAdminLink = user?.role === 'super_admin' || user?.role === 'admin';
+  const showSignatoryLink = user?.role === 'signatory';
+  const showContractorLink = user?.role === 'contractor';
+
+  return (
+    <>
+    <FullScreenLoader isVisible={isLoggingOut} text="Securing Session..." />
+    <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+      <div className="navbar__inner">
+        {/* Logo */}
+        <div className="navbar__brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+          <div className="navbar__logo-mark">
+            <span className="navbar__logo-icon">◈</span>
+          </div>
+          <div className="navbar__logo-text">
+            <span className="navbar__title">SATYA</span>
+            <span className="navbar__subtitle">Transparency Ledger</span>
+          </div>
+        </div>
+
+        {/* Center: Nav Links */}
+        <div className="navbar__center">
+          <div className="navbar__nav-links">
+            <button
+              className={`navbar__nav-link ${isActive('/') ? 'navbar__nav-link--active' : ''}`}
+              onClick={() => navigate('/')}
+            >
+              Ledger
+            </button>
+            <button
+              className={`navbar__nav-link ${isActive('/tenders') ? 'navbar__nav-link--active' : ''}`}
+              onClick={() => navigate('/tenders')}
+            >
+              Tenders
+            </button>
+
+            {/* Dynamic Context-Aware Dashboard Links */}
+            {showAdminLink && (
+              <button
+                className={`navbar__nav-link navbar__nav-link--admin ${isActive('/admin') ? 'navbar__nav-link--active' : ''}`}
+                onClick={() => navigate('/admin')}
+              >
+                <span className="navbar__nav-link-icon">🏛️</span>
+                Governance
+              </button>
+            )}
+
+            {showSignatoryLink && (
+              <button
+                className={`navbar__nav-link navbar__nav-link--admin ${isActive('/signatory-portal') ? 'navbar__nav-link--active' : ''}`}
+                onClick={() => navigate('/signatory-portal')}
+                style={{borderColor: 'var(--status-ongoing)', color: 'var(--status-ongoing)'}}
+              >
+                <span className="navbar__nav-link-icon">🖋️</span>
+                Signing
+              </button>
+            )}
+
+            {showContractorLink && (
+              <button
+                className={`navbar__nav-link navbar__nav-link--admin ${isActive('/contractor') ? 'navbar__nav-link--active' : ''}`}
+                onClick={() => navigate('/contractor')}
+                style={{borderColor: '#4ecdc4', color: '#4ecdc4'}}
+              >
+                <span className="navbar__nav-link-icon">🏗️</span>
+                Dashboard
+              </button>
+            )}
+
+            {user?.role === 'committee' && (
+              <button
+                className={`navbar__nav-link ${isActive('/oversight') ? 'navbar__nav-link--active' : ''}`}
+                onClick={() => navigate('/oversight')}
+              >
+                Oversight
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Right side */}
+        <div className="navbar__right">
+          {user ? (
+            <div className="navbar__user">
+              <AadhaarProfile user={user} />
+              <button className="navbar__logout-btn" onClick={handleLogoutClick}>
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button
+              className="navbar__login-btn"
+              onClick={() => navigate('/login')}
+            >
+              Sign In
+            </button>
+          )}
+          <div className="navbar__clock">
+            <span className="navbar__clock-label">IST</span>
+            <span className="navbar__clock-time">{formatTime(time)}</span>
+          </div>
+          <div className="navbar__status-dot" title="System Online" />
+        </div>
+      </div>
+    </nav>
+    </>
+  );
+}
+>>>>>>> bb97d8c (full logic flow is working (hopefully))

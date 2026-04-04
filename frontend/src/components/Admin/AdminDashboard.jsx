@@ -1,85 +1,477 @@
 import { useState, useEffect } from 'react';
+import { 
+  getFactoryContract, 
+  getTenderContract, 
+  getSigner,
+} from '../../utils/contracts';
 import { useAuth } from '../../context/AuthContext';
+import LoadingOverlay from '../UI/LoadingOverlay';
+import DatePicker from 'react-datepicker';
+import TimeColumnInput from './TimeColumnInput';
+import 'react-datepicker/dist/react-datepicker.css';
 import './AdminDashboard.css';
 
+// ── Helper Component for Independent Time Selection ──
+const IndependentTimePicker = ({ label, value, onChange, placeholder = "Select Date" }) => {
+  const date = value ? new Date(value) : new Date();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+
+  const handleDateChange = (newDate) => {
+    if (!newDate) return;
+    const updated = new Date(newDate);
+    updated.setHours(hours, minutes, 0, 0); // Preserve chosen time
+    onChange(updated);
+  };
+
+  const handleHourChange = (e) => {
+    const updated = new Date(date);
+    updated.setHours(parseInt(e.target.value), minutes, 0, 0);
+    onChange(updated);
+  };
+
+  const handleMinuteChange = (e) => {
+    const updated = new Date(date);
+    updated.setHours(hours, parseInt(e.target.value), 0, 0);
+    onChange(updated);
+  };
+
+  return (
+    <div className="admin-form__field">
+      {label && <label className="admin-form__label">{label}</label>}
+      <div className="admin-form__time-group">
+        <div className="admin-form__date-wrapper">
+          <DatePicker 
+            selected={value ? new Date(value) : null}
+            onChange={handleDateChange}
+            dateFormat="MMMM d, yyyy"
+            className="admin-form__input admin-form__input--date-only"
+            placeholderText={placeholder}
+            required 
+          />
+        </div>
+        <div className="admin-form__time-selectors">
+          <select className="admin-form__input admin-form__input--time" value={hours} onChange={handleHourChange}>
+            {Array.from({ length: 24 }, (_, i) => (
+              <option key={i} value={i}>{i.toString().padStart(2, '0')}</option>
+            ))}
+          </select>
+          <span className="admin-form__time-sep">:</span>
+          <select className="admin-form__input admin-form__input--time" value={minutes} onChange={handleMinuteChange}>
+            {Array.from({ length: 60 }, (_, i) => (
+              <option key={i} value={i}>{i.toString().padStart(2, '0')}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AdminDashboard() {
-    const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('ongoing');
-    const [tenders, setTenders] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('ongoing');
+  const [tenders, setTenders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionContext, setActionContext] = useState('deploying');
+  const [now] = useState(Math.floor(Date.now() / 1000));
 
-    // Form state for creating new tender
-    const [formData, setFormData] = useState({
-        admins: ['', '', '', ''],
-        startTime: '',
-        endTime: '',
-        biddingEndTime: '',
-        retainedPercent: '30',
-        milestones: [
-            { name: 'Initial Planning', percentage: '20' },
-            { name: 'Execution Phase 1', percentage: '50' },
-            { name: 'Final Handover', percentage: '30' }
-        ]
-    });
+  // Form State
+  const [formData, setFormData] = useState({
+    admins: ['', '', '', ''],
+    startTime: new Date(Date.now() + 3600000).toISOString(), // 1 hour buffer
+    endTime: new Date(Date.now() + 604800000).toISOString(), // 1 week buffer
+    biddingEndTime: new Date(Date.now() + 1800000).toISOString(), // 30 min buffer
+    retainedPercent: '30',
+    milestones: [
+      { name: 'Initial Research & Logistics', percentage: '20', deadline: new Date(Date.now() + 172800000).toISOString() },
+      { name: 'Primary Infrastructure Execution', percentage: '50', deadline: new Date(Date.now() + 432000000).toISOString() },
+      { name: 'Final Integration & Compliance', percentage: '30', deadline: new Date(Date.now() + 604800000).toISOString() }
+    ]
+  });
 
-    useEffect(() => {
-        // Backend se tenders list fetch karinge
-        async function load() {
-            try {
-                const res = await fetch('http://localhost:8000/api/tenders/list');
-                const data = await res.json();
-                setTenders(data);
-            } catch (err) {
-                console.error("Fetch failed:", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-        load();
-    }, []);
+  // Derived State
+  const totalPercentage = formData.milestones.reduce((acc, m) => acc + (Number(m.percentage) || 0), 0);
+  const isFormValid = totalPercentage === 100 && formData.admins.every(a => a.startsWith('0x'));
 
-    const handleCreate = (e) => {
-        e.preventDefault();
-        // logic for factory.createTender call yahan link karinge final sync mein
-        alert("Tender authorize ho raha hai blockchain par...");
-    };
+  // Winner Selection State
+  const [selection, setSelection] = useState({
+    show: false,
+    tender: null,
+    contractor: '',
+    amount: '',
+    note: ''
+  });
 
-    return (
-        <div className="admin-dashboard">
-            <header className="admin-header">
-                <h1>Infrastructure Governance Portal</h1>
-                <div className="badge">Welcome, {user?.name || 'Admin'}</div>
-            </header>
+  useEffect(() => {
+    if (activeTab === 'ongoing' || activeTab === 'finalize') {
+      loadTenderData();
+    }
+  }, [activeTab]);
 
-            <div className="tabs">
-                <button onClick={() => setActiveTab('ongoing')}>Vault View</button>
-                <button onClick={() => setActiveTab('create')}>Tender Portal</button>
+  async function loadTenderData() {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/tenders/list');
+      if (!response.ok) throw new Error('Failed to load aggregated tender data');
+      const data = await response.json();
+      setTenders(data);
+    } catch (err) {
+      console.error('[Admin] Sync failed:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleCreateTender = async (e) => {
+    e.preventDefault();
+    if (totalPercentage !== 100) {
+      alert(`The sum of milestone percentages must equal exactly 100%. Current: ${totalPercentage}%`);
+      return;
+    }
+    setActionLoading(true);
+    setActionContext('deploying');
+    try {
+      const signer = await getSigner();
+      const factory = getFactoryContract(signer);
+      
+      const tx = await factory.createTender(
+        formData.admins,
+        BigInt(Math.floor(new Date(formData.startTime).getTime() / 1000)),
+        BigInt(Math.floor(new Date(formData.endTime).getTime() / 1000)),
+        BigInt(Math.floor(new Date(formData.biddingEndTime).getTime() / 1000)),
+        BigInt(formData.retainedPercent),
+        formData.milestones.map(m => m.name),
+        formData.milestones.map(m => BigInt(m.percentage)),
+        formData.milestones.map(m => BigInt(Math.floor(new Date(m.deadline).getTime() / 1000)))
+      );
+      await tx.wait();
+      alert('Tender Deployed Successfully!');
+      setActiveTab('ongoing');
+    } catch (err) {
+      alert(`Deployment failed: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRemovePhase = (index) => {
+    if (formData.milestones.length <= 1) return; // Must have at least one phase
+    const nm = formData.milestones.filter((_, i) => i !== index);
+    setFormData({...formData, milestones: nm});
+  };
+
+  const handleSelectWinner = async () => {
+    if (!selection.contractor || !selection.amount) return;
+    setActionLoading(true);
+    setActionContext('signing');
+    try {
+      const signer = await getSigner();
+      const tender = getTenderContract(selection.tender.tender_address, signer);
+      
+      // 1. Select Contractor AND Fund (now a single payable call)
+      const txSelect = await tender.selectContractor(
+        selection.contractor, 
+        BigInt(selection.amount),
+        { value: BigInt(selection.amount) }
+      );
+      setActionContext('finalizing'); // Update feedback from 'signing'
+      await txSelect.wait();
+      
+      alert('Contractor Finalized & Tender Activated Successfully!');
+      setSelection({ show: false, tender: null, contractor: '', amount: '', note: '' });
+      loadTenderData();
+    } catch (err) {
+      alert(`Finalization/Funding failed: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  return (
+    <div className="admin-dashboard">
+      <div className="admin-dashboard__container">
+        <header className="admin-header">
+           <div className="admin-header__info">
+            <h1 className="admin-header__title">Infrastructure Governance Portal</h1>
+            <div className="admin-header__badge">
+              Official {user?.role === 'admin' ? 'Government Authority' : 'Oversight Officer'}
             </div>
+          </div>
+        </header>
 
+        <div className="admin-tabs">
+          <button className={`admin-tab ${activeTab === 'ongoing' ? 'admin-tab--active' : ''}`} onClick={() => setActiveTab('ongoing')}>
+            <span className="admin-tab__icon">📁</span> Vault View
+          </button>
+          <button className={`admin-tab ${activeTab === 'create' ? 'admin-tab--active' : ''}`} onClick={() => setActiveTab('create')}>
+            <span className="admin-tab__icon">📜</span> Tender Portal
+          </button>
+          <button className={`admin-tab ${activeTab === 'finalize' ? 'admin-tab--active' : ''}`} onClick={() => setActiveTab('finalize')}>
+            <span className="admin-tab__icon">⚖️</span> Settlement
+          </button>
+        </div>
+
+        <LoadingOverlay active={actionLoading} context={actionContext} />
+
+        {loading ? (
+          <LoadingOverlay active={true} context="admin" inline={true} />
+        ) : (
+          <main className="admin-dashboard__content">
             {activeTab === 'ongoing' && (
-                <div className="grid">
-                    {tenders.map((t, i) => (
-                        <div key={i} className="card">
-                            <h3>Asset #{i+1}</h3>
-                            <p>Status: {t.status}</p>
-                            <p>Bids: {t.bids?.length || 0}</p>
-                        </div>
-                    ))}
-                    {tenders.length === 0 && <p>No active assets found on chain.</p>}
-                </div>
+              <div className="admin-ongoing__grid">
+                {tenders.map((t, i) => (
+                  <div key={t.tender_address} className="admin-tender-card">
+                    <div className="admin-tender-card__header">
+                       <div className={`admin-tender-card__status admin-tender-card__status--${t.status.toLowerCase()}`}>{t.status}</div>
+                       <span className="admin-tender-card__index">Asset #{i+1}</span>
+                    </div>
+                    {/* MODIFIED: Replaced full hash with hoverable info button */}
+                    <div className="admin-tender-card__asset-info">
+                      <div className="admin-tender-card__info-btn">
+                        i
+                        <span className="admin-tender-card__tooltip">{t.tender_address}</span>
+                      </div>
+                    </div>
+                    <div className="admin-tender-card__meta">
+                      <div className="admin-tender-card__meta-row">
+                        <span className="admin-tender-card__meta-label">Active Bids</span>
+                        <span className="admin-tender-card__meta-value">{t.bids.length}</span>
+                      </div>
+                      <div className="admin-tender-card__meta-row">
+                        <span className="admin-tender-card__meta-label">Termination Date</span>
+                        <span className="admin-tender-card__meta-value">{new Date(t.end_time * 1000).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {tenders.length === 0 && <div className="admin-ongoing__empty">No active assets identified on chain.</div>}
+              </div>
             )}
 
             {activeTab === 'create' && (
-                <form className="admin-form" onSubmit={handleCreate}>
-                    <h3>Tender Creation Portal</h3>
-                    <div className="field">
-                        <label>Admin 1 Wallet</label>
-                        <input type="text" placeholder="0x..." />
+              <form className="admin-form" onSubmit={handleCreateTender}>
+                <div className="admin-form__section">
+                  <h3 className="admin-form__section-title"><span className="admin-form__section-icon">🔐</span> Multi-Signature Activation</h3>
+                  <div className="admin-form__grid">
+                    {formData.admins.map((admin, idx) => (
+                      <div key={idx} className="admin-form__field">
+                        <label className="admin-form__label">Authority Wallet {idx+1}</label>
+                        <input type="text" className="admin-form__input" placeholder="0x..." value={admin} onChange={(e) => {
+                          const newAdmins = [...formData.admins];
+                          newAdmins[idx] = e.target.value;
+                          setFormData({...formData, admins: newAdmins});
+                        }} required />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="admin-form__section">
+                  <h3 className="admin-form__section-title"><span className="admin-form__section-icon">📅</span> Temporal Constraints</h3>
+                  <div className="admin-form__grid">
+                    <div className="admin-form__field">
+                      <label className="admin-form__label">Bidding Deadline (Cut-off)</label>
+                      <DatePicker 
+                        selected={formData.biddingEndTime ? new Date(formData.biddingEndTime) : null}
+                        onChange={(d) => setFormData({...formData, biddingEndTime: d})}
+                        showTimeInput
+                        customTimeInput={<TimeColumnInput />}
+                        dateFormat="MMMM d, yyyy h:mm:ss aa"
+                        className="admin-form__input"
+                        placeholderText="Select Date & Time"
+                        required 
+                      />
                     </div>
-                    {/* Simplified for mirror emulation */}
-                    <button type="submit" className="btn">Deploy Contract</button>
-                </form>
+                    <div className="admin-form__field">
+                      <label className="admin-form__label">Execution Commencement</label>
+                      <DatePicker 
+                        selected={formData.startTime ? new Date(formData.startTime) : null}
+                        onChange={(d) => setFormData({...formData, startTime: d})}
+                        showTimeInput
+                        customTimeInput={<TimeColumnInput />}
+                        dateFormat="MMMM d, yyyy h:mm:ss aa"
+                        className="admin-form__input"
+                        placeholderText="Select Date & Time"
+                        required 
+                      />
+                    </div>
+                    <div className="admin-form__field">
+                      <label className="admin-form__label">Estimated Termination</label>
+                      <DatePicker 
+                        selected={formData.endTime ? new Date(formData.endTime) : null}
+                        onChange={(d) => setFormData({...formData, endTime: d})}
+                        showTimeInput
+                        customTimeInput={<TimeColumnInput />}
+                        dateFormat="MMMM d, yyyy h:mm:ss aa"
+                        className="admin-form__input"
+                        placeholderText="Select Date & Time"
+                        required 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-form__section">
+                  <div className="admin-form__section-title">
+                    <span className="admin-form__section-icon">🚧</span> Execution Roadmap
+                    <div className="admin-form__pct-total">
+                      <span className="admin-form__label" style={{marginRight:'10px', fontSize:'0.7rem'}}>Retention:</span>
+                      <input 
+                        type="number" 
+                        className="admin-form__input" 
+                        style={{width:'50px', padding:'2px 5px', fontSize:'0.75rem'}}
+                        value={formData.retainedPercent} 
+                        onChange={(e) => setFormData({...formData, retainedPercent: e.target.value})} 
+                      />
+                      <span style={{color:'var(--pink-700)', fontWeight:'800', marginLeft:'5px'}}>% Locked</span>
+                    </div>
+                  </div>
+
+                  <div className="admin-form__milestones">
+                    <div style={{display:'flex', alignItems:'center', gap:'var(--space-md)', marginBottom:'10px', padding:'0 16px', fontSize:'0.7rem', fontWeight:'700', color:'var(--gray-400)', textTransform:'uppercase'}}>
+                       <span style={{width: '34px', flexShrink: 0}}></span>
+                       <span style={{flex: 2}}>Phase Description</span>
+                       <span style={{width: '70px', flexShrink: 0, textAlign:'center'}}>Allocation %</span>
+                       <span style={{flex: 1.5}}>Estimated Deadline</span>
+                       <span style={{width: '30px', flexShrink: 0}}></span>
+                    </div>
+                    {formData.milestones.map((m, idx) => (
+                      <div key={idx} className="admin-form__milestone-row">
+                        <span className="admin-form__milestone-num">0{idx+1}</span>
+                        <input type="text" placeholder="Phase Deliverable" className="admin-form__input admin-form__input--name" value={m.name} onChange={e => {
+                          const nm = [...formData.milestones];
+                          nm[idx].name = e.target.value;
+                          setFormData({...formData, milestones: nm});
+                        }} required />
+                        <input type="number" placeholder="%" className="admin-form__input admin-form__input--pct" value={m.percentage} onChange={e => {
+                          const nm = [...formData.milestones];
+                          nm[idx].percentage = e.target.value;
+                          setFormData({...formData, milestones: nm});
+                        }} required />
+                        <DatePicker 
+                          selected={m.deadline ? new Date(m.deadline) : null}
+                          onChange={(d) => {
+                            const nm = [...formData.milestones];
+                            nm[idx].deadline = d;
+                            setFormData({...formData, milestones: nm});
+                          }}
+                          showTimeInput
+                          customTimeInput={<TimeColumnInput />}
+                          dateFormat="MMMM d, yyyy h:mm:ss aa"
+                          className="admin-form__input admin-form__input--date"
+                          wrapperClassName="admin-form__input--date"
+                          placeholderText="Select Deadline"
+                          required 
+                        />
+                        <button type="button" className="admin-form__remove" onClick={() => handleRemovePhase(idx)} style={{background:'none', border:'none', cursor:'pointer', color:'var(--pink-500)', fontSize:'1.2rem'}} title="Remove Phase">×</button>
+                      </div>
+                    ))}
+                    
+                    <div className="admin-form__pct-summary" style={{
+                      display:'flex', 
+                      justifyContent:'space-between', 
+                      alignItems:'center',
+                      background: totalPercentage === 100 ? 'var(--status-completed-bg)' : 'var(--status-pending-bg)',
+                      padding:'12px 20px',
+                      borderRadius: 'var(--radius-md)',
+                      border: `1.5px dashed ${totalPercentage === 100 ? 'var(--status-completed)' : 'var(--status-pending)'}`
+                    }}>
+                       <span style={{fontFamily:'var(--font-mono)', fontSize:'0.8rem', color: totalPercentage === 100 ? 'var(--status-completed)' : 'var(--status-pending)'}}>
+                         {totalPercentage === 100 ? '✓ Milestone allocation verified (100%)' : `⚠ Total allocation must equal 100% (Current: ${totalPercentage}%)`}
+                       </span>
+                       <button type="button" className="admin-header__back" onClick={() => setFormData({...formData, milestones: [...formData.milestones, {name:'', percentage:'', deadline:''}]})}>
+                        + Add Phase
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" className="admin-form__submit" disabled={!isFormValid}>
+                   {totalPercentage !== 100 ? 'Awaiting Allocation Balance' : 'Authorize Contract Deployment'}
+                </button>
+              </form>
             )}
-        </div>
-    );
+
+            {activeTab === 'finalize' && (
+              <div className="admin-ongoing">
+                <div className="admin-ongoing__header">
+                   <h3 className="admin-ongoing__title">PROJECTS AWAITING SETTLEMENT</h3>
+                </div>
+                <div className="admin-ongoing__grid">
+                  {tenders.filter(t => t.status === 'BIDDING' && now >= Number(t.bidding_end_time)).map((t, n) => (
+                    <div key={t.tender_address} className="admin-tender-card">
+                      <div className="admin-tender-card__header">
+                        <div className="admin-tender-card__status admin-tender-card__status--bidding">SEALED</div>
+                        <span className="admin-tender-card__index">Ready for Finalization</span>
+                      </div>
+                      {/* MODIFIED: Replaced full hash with hoverable info button */}
+                      <div className="admin-tender-card__asset-info">
+                        <div className="admin-tender-card__info-btn">
+                          i
+                          <span className="admin-tender-card__tooltip">{t.tender_address}</span>
+                        </div>
+                      </div>
+                      <div className="admin-tender-card__meta">
+                        <div className="admin-tender-card__meta-row">
+                          <span className="admin-tender-card__meta-label">Bids Received</span>
+                          <span className="admin-tender-card__meta-value">{t.bids.length}</span>
+                        </div>
+                      </div>
+                      <button className="admin-denied__btn" style={{width:'100%', marginTop:'15px'}} onClick={() => setSelection({ ...selection, show: true, tender: t })}>
+                        Open Envelopes & Settle
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {tenders.filter(t => t.status === 'BIDDING' && now >= Number(t.bidding_end_time)).length === 0 && (
+                   <div className="admin-ongoing__empty">No projects currently require finalization.</div>
+                )}
+              </div>
+            )}
+          </main>
+        )}
+
+        {selection.show && (
+          <div className="admin-modal">
+            <div className="admin-modal__content">
+              <h3>Arbitration & Winning Bid Selection</h3>
+              {/* MODIFIED: Replaced inline hash with info button */}
+              <p style={{fontSize:'0.8rem', color:'var(--gray-500)', marginBottom:'20px', display: 'flex', alignItems: 'center'}}>
+                Evaluating bids for asset: 
+                <span className="admin-tender-card__info-btn admin-tender-card__info-btn--inline" style={{marginLeft: '10px'}}>
+                  i
+                  <span className="admin-tender-card__tooltip">{selection.tender.tender_address}</span>
+                </span>
+              </p>
+              
+              <div className="admin-form__field">
+                <label className="admin-form__label">Protocol Verified Top 3 (Lowest Bids)</label>
+                <select className="admin-form__input" value={selection.contractor} onChange={(e) => {
+                  const b = selection.tender.bids.find(bid => bid.bidder === e.target.value);
+                  setSelection({...selection, contractor: e.target.value, amount: b ? b.amount : ''});
+                }}>
+                  <option value="">Select Candidate...</option>
+                  {[...selection.tender.bids].sort((a,b) => Number(a.amount) - Number(b.amount)).slice(0,3).map(b => (
+                    <option key={b.bidder} value={b.bidder}>{b.bidder.slice(0,18)}... ({b.amount} Wei)</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="admin-form__field" style={{marginTop:'15px'}}>
+                <label className="admin-form__label">Selection Justification</label>
+                <textarea placeholder="Provide reasoning for public oversight..." className="admin-form__input" rows="3" value={selection.note} onChange={(e) => setSelection({...selection, note: e.target.value})}></textarea>
+              </div>
+
+              <div className="admin-modal__actions">
+                <button className="admin-header__back" onClick={() => setSelection({...selection, show: false})}>Abort</button>
+                <button className="admin-denied__btn" onClick={handleSelectWinner}>Authorize Activation</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -107,14 +107,21 @@ contract Tender {
         uint256[] memory _percentages,
         uint256[] memory _deadlines
     ) {
+<<<<<<< HEAD
         // basic validations
+=======
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
         require(_admins.length == 4, "Need 4 admins");
         require(_names.length == _percentages.length && _names.length == _deadlines.length, "Invalid milestone input");
 
         factory = _factory;
+
         admins = [_admins[0], _admins[1], _admins[2], _admins[3]];
 
+<<<<<<< HEAD
         // role assignment
+=======
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
         roles[_admins[0]] = Role.ON_SITE_ENGINEER;
         roles[_admins[1]] = Role.COMPLIANCE_OFFICER;
         roles[_admins[2]] = Role.FINANCIAL_AUDITOR;
@@ -123,6 +130,7 @@ contract Tender {
         startTime = _startTime;
         endTime = _endTime;
         biddingEndTime = _biddingEndTime;
+
         retainedPercent = _retainedPercent;
 
         uint256 chainId;
@@ -154,6 +162,7 @@ contract Tender {
         }
 
         require(totalPercent == 100, "Percent must be 100");
+<<<<<<< HEAD
         tenderStatus = TenderStatus.BIDDING;
     }
 
@@ -163,6 +172,23 @@ contract Tender {
         emit Funded(msg.value);
     }
 
+=======
+
+        tenderStatus = TenderStatus.BIDDING;
+    }
+
+    // ---------------- FUNDING ----------------
+
+    function fundContract() external payable onlyGovernment {
+        require(msg.value > 0, "No funds");
+        totalFunds += msg.value;
+
+        emit Funded(msg.value);
+    }
+
+    // ---------------- ROLE HELPERS ----------------
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
     function getRoleName(address user) external view returns (string memory) {
         Role r = roles[user];
         if (ITenderFactory(factory).isGovernment(user)) return "Government";
@@ -174,6 +200,11 @@ contract Tender {
         return "None";
     }
 
+<<<<<<< HEAD
+=======
+    // ---------------- BIDDING ----------------
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
     function placeBid(uint256 amount) external {
         require(tenderStatus == TenderStatus.BIDDING, "Not bidding");
         require(block.timestamp < biddingEndTime, "Ended");
@@ -181,6 +212,7 @@ contract Tender {
 
         bids.push(Bid(msg.sender, amount));
         hasBid[msg.sender] = true;
+
         emit BidPlaced(msg.sender, amount);
     }
 
@@ -192,28 +224,44 @@ contract Tender {
         require(block.timestamp >= biddingEndTime, "Not over");
         require(hasBid[_contractor], "Not bidder");
         require(_contractor != address(0), "Invalid contractor");
+<<<<<<< HEAD
+=======
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
         require(msg.value == _winningBid, "Incorrect fund amount");
 
         contractor = _contractor;
         roles[_contractor] = Role.CONTRACTOR;
+
         winningBid = _winningBid;
         totalFunds += msg.value;
+
         tenderStatus = TenderStatus.ACTIVE;
 
         emit ContractorSelected(_contractor, _winningBid);
     }
 
+<<<<<<< HEAD
+=======
+    // ---------------- MILESTONE ----------------
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
     function submitMilestone(uint256 id)
         external
         onlyContractor
         onlyActive
     {
         require(id == currentMilestone, "Wrong id");
+
         milestones[id].status = MilestoneStatus.UNDER_REVIEW;
+
         emit MilestoneSubmitted(id);
     }
 
+<<<<<<< HEAD
     // execution requires 4 signatures collected off-chain
+=======
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
     function executeMilestone(
         uint256 id,
         bytes[] calldata signatures
@@ -237,8 +285,17 @@ contract Tender {
 
         for (uint i = 0; i < 4; i++) {
             require(signatures[i].length == 65, "Invalid signature length");
+<<<<<<< HEAD
+=======
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
             address signer = recover(digest, signatures[i]);
+
             require(!hasSigned[id][signer], "Duplicate");
+<<<<<<< HEAD
+=======
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
             require(
                 roles[signer] == Role.ON_SITE_ENGINEER ||
                 roles[signer] == Role.COMPLIANCE_OFFICER ||
@@ -246,11 +303,21 @@ contract Tender {
                 roles[signer] == Role.SANCTIONING_AUTHORITY,
                 "Invalid signer"
             );
+<<<<<<< HEAD
+=======
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
             hasSigned[id][signer] = true;
         }
 
         executed[id] = true;
+<<<<<<< HEAD
         _finalize(id);
+=======
+
+        _finalize(id);
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
         emit MilestoneExecuted(id);
     }
 
@@ -262,14 +329,20 @@ contract Tender {
         bytes32 r;
         bytes32 s;
         uint8 v;
+<<<<<<< HEAD
+=======
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
         assembly {
             r := mload(add(sig, 32))
             s := mload(add(sig, 64))
             v := byte(0, mload(add(sig, 96)))
         }
+
         return ecrecover(digest, v, r, s);
     }
 
+<<<<<<< HEAD
     function _finalize(uint256 id) internal {
         Milestone storage m = milestones[id];
         uint256 payout = (winningBid * m.percentage) / 100;
@@ -281,6 +354,24 @@ contract Tender {
         m.status = MilestoneStatus.APPROVED;
         currentMilestone++;
 
+=======
+    // ---------------- FINALIZE ----------------
+
+    function _finalize(uint256 id) internal {
+        Milestone storage m = milestones[id];
+
+        uint256 payout = (winningBid * m.percentage) / 100;
+
+        require(address(this).balance >= payout, "Insufficient funds");
+
+        (bool sent,) = contractor.call{value: payout}("");
+        require(sent, "Payment failed");
+
+        m.status = MilestoneStatus.APPROVED;
+
+        currentMilestone++;
+
+>>>>>>> bb97d8c (full logic flow is working (hopefully))
         if (currentMilestone == milestones.length) {
             tenderStatus = TenderStatus.COMPLETED;
         }
