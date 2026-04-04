@@ -1,10 +1,5 @@
 # Context Comparator Integration Instructions
 
-<<<<<<< HEAD
-Hello Antigravity Assistant! Abe yahan text similarity logic karinge sync.
-The primary function is `compare_texts(text1, text2)` which uses the `gemini-embedding-001` model.
-...[Content synced]...
-=======
 Hello Antigravity Assistant! Your user's teammate has developed a new feature in the `context_comparator` directory to compare text similarity using Google GenAI embeddings.
 
 Your task is to help the user deeply integrate this new feature into the larger `Satya` project.
@@ -30,5 +25,4 @@ Your task is to help the user deeply integrate this new feature into the larger 
    - Examples could include integrating it into an existing FastAPI endpoint, a batch-processing script, or connecting it to the frontend's search/similarity queries.
    - You can safely import it into other components using `from context_comparator.comparator import compare_texts`.
 
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 Please proceed to assist the user efficiently and robustly!

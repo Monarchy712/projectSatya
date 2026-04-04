@@ -1,82 +1,5 @@
 /* ===== FullScreenLoader CSS ===== */
 .fs-loader-overlay {
-<<<<<<< HEAD
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: rgba(254, 232, 217, 0.85);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fsFadeIn 0.3s var(--ease-out) forwards;
-}
-
-.fs-loader-card {
-    background: var(--white);
-    border: 1px solid var(--pink-200);
-    padding: 2.5rem 4rem;
-    border-radius: var(--radius-xl);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-xl);
-    box-shadow: 0 16px 32px -8px rgba(84, 107, 43, 0.15);
-    animation: fsSlideUp 0.4s var(--ease-out) forwards;
-}
-
-.fs-loader-spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid var(--pink-100);
-    border-top-color: var(--pink-700);
-    border-radius: 50%;
-    animation: fsSpin 0.8s linear infinite;
-}
-
-.fs-loader-text {
-    font-family: var(--font-mono);
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--pink-900);
-    text-transform: uppercase;
-}
-
-@keyframes fsFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fsSlideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes fsSpin {
-    to { transform: rotate(360deg); }
-}
-
-/* Wallet Animation logic */
-.fs-loader-wallet-anim {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--teal);
-}
-
-.fs-wallet-icon {
-    animation: walletBounce 1.5s ease-in-out infinite;
-}
-
-.fs-coin {
-    position: absolute;
-    font-size: 1.5rem;
-    color: var(--gold);
-    opacity: 0;
-=======
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -160,23 +83,10 @@
   pointer-events: none;
   opacity: 0;
   z-index: 1;
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }
 
 .fs-coin-1 { animation: coinDrop 2s ease-in-out infinite; }
 .fs-coin-2 { animation: coinDrop 2s ease-in-out infinite 0.7s; }
-<<<<<<< HEAD
-
-@keyframes walletBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-
-@keyframes coinDrop {
-    0% { transform: translate(30px, -70px); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translate(-10px, 10px); opacity: 0; }
-=======
 .fs-coin-3 { animation: coinDrop 2s ease-in-out infinite 1.4s; }
 
 @keyframes walletBounce {
@@ -200,5 +110,49 @@
     transform: translate(-10px, 10px) scale(0.8) rotate(360deg);
     opacity: 0;
   }
->>>>>>> bb97d8c (full logic flow is working (hopefully))
+}
+
+/* ── Security / Logout Animation ── */
+.fs-loader-security-anim {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6b6b;
+}
+
+.fs-shield-icon {
+  z-index: 2;
+  animation: shieldPulse 1.2s ease-in-out infinite;
+}
+
+.fs-pulse-ring {
+  position: absolute;
+  border: 2px solid #ff6b6b;
+  border-radius: 50%;
+  opacity: 0;
+  z-index: 1;
+}
+
+.fs-pulse-1 { animation: ringPulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.fs-pulse-2 { animation: ringPulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite 1s; }
+
+@keyframes shieldPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255, 107, 107, 0)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px rgba(255, 107, 107, 0.5)); }
+}
+
+@keyframes ringPulse {
+  0% {
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+  }
+  100% {
+    width: 120px;
+    height: 120px;
+    opacity: 0;
+  }
 }

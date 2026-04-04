@@ -2,69 +2,6 @@
    LoadingOverlay — Premium loading states for Satya
    =================================================================== */
 
-<<<<<<< HEAD
-.lo-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(254, 232, 217, 0.88);
-    backdrop-filter: blur(12px);
-    opacity: 0;
-    transition: opacity 0.35s ease;
-    pointer-events: none;
-}
-
-.lo-overlay--active {
-    opacity: 1;
-    pointer-events: all;
-}
-
-.lo-card {
-    background: var(--white);
-    border: 1px solid var(--pink-200);
-    border-radius: var(--radius-xl);
-    padding: 48px 56px 36px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    min-width: 340px;
-    box-shadow: 0 24px 64px -16px rgba(113, 139, 77, 0.18);
-}
-
-.lo-spinner__fill {
-    stroke: var(--pink-600);
-    animation: loSpinnerDash 1.8s ease-in-out infinite;
-}
-
-@keyframes loSpinnerDash {
-    0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
-    50% { stroke-dasharray: 80, 200; stroke-dashoffset: -35; }
-    100% { stroke-dasharray: 80, 200; stroke-dashoffset: -125; }
-}
-
-.lo-card__message {
-    font-family: var(--font-mono);
-    font-size: 0.88rem;
-    color: var(--gray-700);
-}
-
-/* progress fill logic yahan handle karinge */
-.lo-card__progress-track {
-    width: 100%;
-    height: 4px;
-    background: var(--pink-100);
-    border-radius: 10px;
-}
-
-.lo-card__progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--pink-500), var(--pink-700));
-}
-=======
 /* ── Full-screen overlay ── */
 .lo-overlay {
   position: fixed;
@@ -404,4 +341,3 @@
 .lo-inline__message { font-family: var(--font-mono); font-size: 0.85rem; color: var(--gray-600); }
 .lo-inline__progress-track { width: 100%; height: 3px; background: var(--pink-100); }
 .lo-inline__progress-fill { height: 100%; background: linear-gradient(90deg, var(--pink-400), var(--pink-700)); }
->>>>>>> bb97d8c (full logic flow is working (hopefully))

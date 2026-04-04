@@ -3,59 +3,6 @@
    =================================================================== */
 
 .signatory-portal {
-<<<<<<< HEAD
-    min-height: 100vh;
-    background: var(--cream);
-    padding: 120px var(--space-xl) var(--space-3xl);
-}
-
-.signatory-container {
-    max-width: 1100px;
-    margin: 0 auto;
-}
-
-/* Header logic yahan handle karinge properly */
-.signatory-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--space-2xl);
-    border-bottom: 2px solid var(--pink-100);
-}
-
-.signatory-header__title {
-    font-size: 2.2rem;
-    font-weight: 800;
-}
-
-/* Milestone card logic for verification */
-.milestone-card {
-    background: var(--surface-glass);
-    border: 1px solid var(--pink-100);
-    border-radius: var(--radius-xl);
-    padding: var(--space-xl);
-    display: grid;
-    grid-template-columns: 1fr 220px;
-}
-
-/* Signatory button styling yahan sync karinge */
-.signatory-btn {
-    width: 100%;
-    padding: 14px 24px;
-    background: linear-gradient(135deg, var(--gray-800), var(--gray-900));
-    color: var(--white);
-}
-
-.signatory-btn--primary {
-    background: linear-gradient(135deg, var(--pink-600), var(--pink-700));
-}
-
-/* info tool logic yahan handle karinge for address */
-.info-tool {
-    width: 22px;
-    height: 22px;
-    background: var(--pink-100);
-    border-radius: 50%;
-=======
   min-height: 100vh;
   background: var(--cream);
   padding: 120px var(--space-xl) var(--space-3xl);
@@ -448,5 +395,4 @@
     width: auto;
     min-width: 200px;
   }
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

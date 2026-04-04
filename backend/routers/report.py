@@ -26,11 +26,7 @@ async def validate_report(
     files: List[UploadFile] = File(...),
     user=Depends(get_current_user)
 ):
-    """
-    Real ML Validation Service using Roboflow.
-    Checks images for construction defects.
-    If NO defects are found across any images, the user is BANNED.
-    """
+    # AI scan ho raha hai. Agar image me kuch gadbad (fraud) dikhi, toh user ban ho jayega.
     if user.get("role") != "citizen":
         raise HTTPException(status_code=403, detail="Only citizens can validate reports")
 
@@ -56,8 +52,7 @@ async def validate_report(
         if max_score >= 20.0:
             break
 
-    # 🚨 Automated Banning Logic
-    # If score is less than 20, BAN the user on-chain.
+    # Agar AI score kam hai, toh user ko blockchain par permanently ban (FRAUD) kar do
     if max_score < 20.0:
         # Get unique identity hash from JWT
         identity_hash = get_identity_hash(user.get("sub"))
@@ -96,10 +91,7 @@ async def validate_report(
         "results": all_results
     }
 
-@router.post("/submit")
-def submit_report(payload: ReportSubmit, user=Depends(get_current_user)):
-    if user.get("role") != "citizen":
-        raise HTTPException(status_code=403, detail="Only citizens can submit reports")
+    # Verified report ko final submit kar rahe hain
     
     aadhaar_last4 = user.get("aadhaar_last4")
     if not aadhaar_last4:
@@ -139,7 +131,7 @@ def submit_report(payload: ReportSubmit, user=Depends(get_current_user)):
         raise HTTPException(status_code=429, detail="Limit exceeded: Only 1 report per week allowed.")
 
 
-    # 4. Process Transaction
+    # Transaction process karke data blockchain par push kar rahe hain
     try:
         # Confidence score from ML is already scaled 0-100
         confidence_scaled = int(payload.confidence)

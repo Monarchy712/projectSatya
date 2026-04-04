@@ -1,69 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-<<<<<<< HEAD
-import './OversightDashboard.css';
-
-export default function OversightDashboard() {
-    const { user, token } = useAuth();
-    const [tenders, setTenders] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [signing, setSigning] = useState(false);
-
-    useEffect(() => {
-        // Backend/Blockchain se user ke relevant tenders load karinge
-        async function load() {
-            try {
-                const res = await fetch('http://localhost:8000/api/tenders/list');
-                const data = await res.json();
-                setTenders(data);
-            } catch (err) {
-                console.error("Oversight data failed:", err);
-            } finally {
-                setLoading(false);
-            }
-        }
-        load();
-    }, []);
-
-    const handleSign = (addr, mIdx) => {
-        // signature collection logic
-        setSigning(true);
-        setTimeout(() => {
-            alert(`Signature collected for ${addr} Phase ${mIdx+1}`);
-            setSigning(false);
-        }, 1000);
-    };
-
-    return (
-        <div className="oversight-view">
-            <header className="oversight-header">
-                <h1>Oversight Committee Portal</h1>
-                <div className="badge">Role: {user.name || 'Committee Member'}</div>
-            </header>
-
-            {loading ? <p>Loading oversight tasks...</p> : (
-                <div className="container">
-                    <section className="list">
-                        <h2>Pending Milestone Reviews</h2>
-                        {tenders.map((t, i) => (
-                            <div key={i} className="card">
-                                <h3>Project: {t.tender_address.slice(0,10)}...</h3>
-                                <p>Milestone #{t.current_milestone + 1}</p>
-                                <div className="actions">
-                                    <button className="btn" onClick={() => handleSign(t.tender_address, t.current_milestone)}>
-                                        🖋️ Sign & Approve
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </section>
-                </div>
-            )}
-
-            {signing && <div className="overlay">Cryptographic Signing in progress...</div>}
-        </div>
-    );
-=======
 import {
   getProvider,
   getSigner,
@@ -96,7 +32,7 @@ export default function OversightDashboard() {
       const provider = getProvider();
       const factory = getFactoryContract(provider);
 
-      // Get all tenders this user is involved in (on-chain via getUserTenders)
+      // User jin tenders me involved hai, unki list blockchain (factory contract) se mangwa rahe hain
       const userTenderAddresses = await factory.getUserTenders(user.wallet);
 
       if (!userTenderAddresses || userTenderAddresses.length === 0) {
@@ -132,7 +68,22 @@ export default function OversightDashboard() {
           const mStatusNum = Number(milestone.status);
 
           // Check if this user already signed (mapping: hasSigned[id][user])
-          const alreadySigned = await tender.hasSigned(mIdx, user.wallet);
+          const onchainSigned = await tender.hasSigned(mIdx, user.wallet);
+
+          let offchainSigned = false;
+          try {
+            const hasSignedRes = await fetch(
+              `http://localhost:8000/api/committee/has-signed?tender_address=${tAddr}&milestone_id=${mIdx}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (hasSignedRes.ok) {
+              offchainSigned = await hasSignedRes.json();
+            }
+          } catch {
+            // Ignore
+          }
+
+          const alreadySigned = onchainSigned || offchainSigned;
 
           // Get signature count from backend
           let sigCount = 0;
@@ -149,12 +100,22 @@ export default function OversightDashboard() {
             // Backend may not have data yet
           }
 
-          // Contract balance
+          // Get balance from backend
           let balance = '0';
           try {
-            const balRaw = await tender.totalFunds();
-            balance = ethers.formatEther(balRaw);
-          } catch {}
+            const bres = await fetch(`http://localhost:8000/api/tenders/${tAddr}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (bres.ok) {
+              const bdata = await bres.json();
+              if (bdata.total_funds) {
+                // Convert wei string from backend to ETH
+                balance = ethers.formatEther(bdata.total_funds);
+              }
+            }
+          } catch (err) {
+            console.error(`Failed to fetch backend balance for ${tAddr}:`, err);
+          }
 
           results.push({
             address: tAddr,
@@ -188,13 +149,13 @@ export default function OversightDashboard() {
     setToast('');
     setError('');
     try {
-      // 1. Get signer from MetaMask
+      // MetaMask se wallet signer connect ho raha hai
       const signer = await getSigner();
 
-      // 2. Sign the EIP-712 typed data off-chain
+      // EIP-712 protocol use karke off-chain digital signature generate kar rahe hain
       const signature = await signMilestoneApproval(signer, tenderAddr, milestoneId);
 
-      // 3. Send signature to backend for accumulation
+      // Signature ko backend bhej rahe hain accumulation (counting) ke liye
       const res = await fetch('http://localhost:8000/api/committee/sign', {
         method: 'POST',
         headers: {
@@ -321,12 +282,24 @@ export default function OversightDashboard() {
                       <span className={`oversight-card__status oversight-card__status--${t.milestoneStatus.toLowerCase().replace('_', '-')}`}>
                         {t.milestoneStatus}
                       </span>
-                      <span className="oversight-card__sigs">
-                        Signatures: {t.sigCount}/4
-                      </span>
-                      <span className="oversight-card__sigs" style={{color: Number(t.balance) > 0 ? '#2ecc71' : '#e74c3c'}}>
+                      <div className="oversight-card__progress">
+                        <div className="oversight-card__progress-label">
+                          <span>Signatures Collected</span>
+                          <strong>{t.sigCount}/4</strong>
+                        </div>
+                        <div className="oversight-card__progress-track">
+                          <div 
+                            className="oversight-card__progress-fill"
+                            style={{ 
+                              width: `${(t.sigCount / 4) * 100}%`,
+                              background: t.sigCount >= 4 ? 'var(--status-completed)' : 'var(--pink-600)'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="oversight-card__balance" style={{color: Number(t.balance) > 0 ? '#2ecc71' : '#e74c3c'}}>
                         Contract Balance: {t.balance} ETH
-                      </span>
+                      </div>
                     </div>
                   </div>
 
@@ -335,7 +308,7 @@ export default function OversightDashboard() {
                       <div className="oversight-card__status oversight-card__status--signed" style={{ color: '#2ecc71', textShadow: '0 0 10px rgba(46, 204, 113, 0.5)' }}>
                         PROJECT COMPLETED ✓
                       </div>
-                    ) : t.milestoneStatusNum === 1 ? (
+                                        ) : t.milestoneStatusNum === 1 ? (
                       t.sigCount >= 4 ? (
                         <button
                           className="oversight-card__btn oversight-card__btn--execute"
@@ -344,13 +317,17 @@ export default function OversightDashboard() {
                         >
                           ⚙️ Execute On-Chain
                         </button>
+                      ) : t.alreadySigned ? (
+                        <div className="oversight-card__status oversight-card__status--approved">
+                          Successful ✓
+                        </div>
                       ) : (
                         <button
                           className="oversight-card__btn"
                           onClick={() => handleSign(t.address, t.currentMilestone)}
                           disabled={signing}
                         >
-                          {t.alreadySigned ? '🔄 Re-submit Sig' : '🖋️ Sign & Approve'}
+                          Sign & Approve
                         </button>
                       )
                     ) : t.milestoneStatusNum === 2 ? (
@@ -369,7 +346,7 @@ export default function OversightDashboard() {
           </section>
 
           <aside className="oversight-view__rules">
-            <h3>EIP-712 Signing Protocol</h3>
+            {/* Oversight rules aur security protocol ki details */}
             <ul>
               <li>Your signature is cryptographically tied to this milestone and contract.</li>
               <li>Once 4/4 committee members sign, the milestone is automatically executed on-chain.</li>
@@ -390,5 +367,4 @@ export default function OversightDashboard() {
       )}
     </div>
   );
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

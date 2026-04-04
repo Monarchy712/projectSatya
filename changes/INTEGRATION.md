@@ -1,13 +1,5 @@
 # Satya UI/UX Integration Guide
 
-<<<<<<< HEAD
-This document provides a step-by-step guide to merging the refined UI components...
-[Content synced from source...]
-
-## 🛠 Integration Steps
-Abe yahan integration logic karinge sync. 
-Refined UI k liye check changes folder files.
-=======
 This document provides a step-by-step guide to merging the refined UI components from the `changes/` folder into your main production codebase. These updates address layout issues, unify branding, and enhance the overall aesthetic quality of the platform.
 
 ## 📁 Files Included in `changes/`
@@ -46,4 +38,3 @@ The "Vault View" previously looked sparse when empty.
 
 > [!TIP]
 > After moving these files, ensure your development server is running (`npm run dev`) to verify that the hot-reload applies the new styles correctly.
->>>>>>> bb97d8c (full logic flow is working (hopefully))

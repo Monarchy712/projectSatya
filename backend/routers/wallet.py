@@ -14,13 +14,8 @@ router = APIRouter(prefix="/api/auth/wallet", tags=["Wallet Auth"])
 
 @router.post("/connect", response_model=NonceResponse)
 def wallet_connect(payload: WalletConnect, db: Session = Depends(get_db)):
-    """
-    Step 1: MetaMask connection. Returns a nonce for the wallet address.
-    Determines role by checking:
-      1. isGovernment on TenderFactory (gov/super_admin)
-      2. Contractor DB registration
-      3. getUserTenders + getRoleName (committee member)
-    """
+    # Step 1: Wallet connect karne par nonce (random string) nikaal rahe hain verification ke liye
+    # Role check hota hai: Government, Contractor, ya Oversight Committee
     address = payload.wallet_address.lower()
     
     # 1. Check if gov via Blockchain Source of Truth
@@ -65,9 +60,7 @@ def wallet_connect(payload: WalletConnect, db: Session = Depends(get_db)):
 
 @router.post("/verify", response_model=TokenResponse)
 def wallet_verify(payload: WalletVerify, db: Session = Depends(get_db)):
-    """
-    Step 2: Sign verification. Returns JWT and redirect path.
-    """
+    # Step 2: Signature verify karke login success (JWT token) return kar rahe hain
     address = payload.wallet_address.lower()
     
     # 1. Try gov (Source of Truth: isGovernment on-chain)
@@ -138,12 +131,12 @@ contractor_router = APIRouter(prefix="/api/contractors", tags=["Contractor Manag
 
 @contractor_router.get("/list", response_model=List[ContractorMetadata])
 def list_contractors(db: Session = Depends(get_db)):
-    """Fetch all registered contractors."""
+    # Register huye saare contractors ki list dikhane ke liye
     return db.query(Contractor).all()
 
 @contractor_router.post("/register", response_model=MessageResponse)
 def register_contractor(payload: ContractorCreate, db: Session = Depends(get_db)):
-    """Register a new contractor with wallet."""
+    # Naye contractor ko database me register (connect) karne ke liye
     address = payload.wallet_address.lower()
     if db.query(Contractor).filter(Contractor.wallet_address == address).first():
         raise HTTPException(status_code=409, detail="Already registered.")

@@ -1,57 +1,6 @@
 /* ===== Contractor Register — Premium Split Ledger Theme ===== */
 
 .cr-page {
-<<<<<<< HEAD
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--cream);
-    background-image: radial-gradient(var(--pink-200) 1px, transparent 1px);
-}
-
-.cr-container {
-    width: 100%;
-    max-width: 1100px;
-    display: flex;
-    flex-direction: row;
-    gap: var(--space-3xl);
-}
-
-/* Header logic yahan handle karinge properly */
-.cr-header {
-    flex: 1;
-    text-align: left;
-    padding-right: var(--space-2xl);
-}
-
-.cr-header__title {
-    font-size: 3.5rem;
-    font-weight: 900;
-    color: var(--pink-900);
-}
-
-/* Form card logic yahan sync karinge */
-.cr-form {
-    background: var(--white);
-    border: 1px solid var(--pink-200);
-    border-radius: var(--radius-xl);
-    padding: 2rem 2.5rem;
-}
-
-.cr-input {
-    width: 100%;
-    padding: 14px 20px;
-    background: var(--gray-50);
-    border: 2px solid var(--pink-200);
-}
-
-/* List logic yahan for contractors */
-.cr-list {
-    background: var(--white);
-    border: 1px solid var(--pink-200);
-    padding: 2rem;
-=======
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -331,5 +280,4 @@
   .cr-header__title {
     font-size: 2.8rem;
   }
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

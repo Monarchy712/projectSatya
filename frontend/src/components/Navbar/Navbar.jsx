@@ -1,39 +1,37 @@
-<<<<<<< HEAD
-import './Navbar.css';
-
-function Navbar() {
-    // top navigation logic yahan start hogi
-    return (
-        <nav className="navbar">
-            <div className="navbar__logo">Satya Platform</div>
-            <ul className="navbar__links">
-                <li>Home</li>
-                <li>Tenders</li>
-                <li>Oversight</li>
-            </ul>
-        </nav>
-    );
-}
-
-export default Navbar;
-=======
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import FullScreenLoader from '../UI/FullScreenLoader';
 import './Navbar.css';
 
-// --- Profile Widget (Moved outside to prevent remounting on Navbar re-renders) ---
+const AADHAAR_PEOPLE = [
+  { name: "Aanya Sharma", dob: "12/08/1990", address: "New Delhi, DL", fullAadhaar: "9342 5678 7836", maskedAadhaar: "•••• •••• 7836" },
+  { name: "Rahul Verma", dob: "05/03/1985", address: "Mumbai, MH", fullAadhaar: "4521 8934 1256", maskedAadhaar: "•••• •••• 1256" },
+  { name: "Priya Patel", dob: "22/11/1992", address: "Ahmedabad, GJ", fullAadhaar: "7845 1290 3476", maskedAadhaar: "•••• •••• 3476" },
+  { name: "Amit Singh", dob: "15/06/1988", address: "Lucknow, UP", fullAadhaar: "3214 6789 5432", maskedAadhaar: "•••• •••• 5432" },
+  { name: "Sneha Reddy", dob: "09/09/1995", address: "Hyderabad, TS", fullAadhaar: "6543 2189 0987", maskedAadhaar: "•••• •••• 0987" },
+  { name: "Vikram Malhotra", dob: "30/01/1982", address: "Chandigarh, CH", fullAadhaar: "9876 5432 1098", maskedAadhaar: "•••• •••• 1098" },
+  { name: "Neha Gupta", dob: "18/04/1991", address: "Pune, MH", fullAadhaar: "1234 5678 9012", maskedAadhaar: "•••• •••• 9012" },
+  { name: "Rohan Das", dob: "25/12/1989", address: "Kolkata, WB", fullAadhaar: "5678 9012 3456", maskedAadhaar: "•••• •••• 3456" },
+  { name: "Kavita Rathi", dob: "07/07/1994", address: "Jaipur, RJ", fullAadhaar: "3456 7890 1234", maskedAadhaar: "•••• •••• 1234" },
+  { name: "Suresh Pillai", dob: "14/02/1986", address: "Chennai, TN", fullAadhaar: "9012 3456 7890", maskedAadhaar: "•••• •••• 7890" }
+];
+
+// Is component me Aadhaar profile widget hai jo top-right me dikhta hai
 const AadhaarProfile = ({ user }) => {
-  // Hardcoded per requirements
-  const fullAadhaar = "9342 5678 7836";
-  const maskedAadhaar = "•••• 7836";
+  const selectedPerson = useMemo(() => {
+    if (!user) return AADHAAR_PEOPLE[0];
+    const userString = JSON.stringify(user);
+    let hash = 0;
+    for (let i = 0; i < userString.length; i++) {
+        hash = userString.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return AADHAAR_PEOPLE[Math.abs(hash) % AADHAAR_PEOPLE.length];
+  }, [user]);
+
+  const fullAadhaar = selectedPerson.fullAadhaar;
+  const maskedAadhaar = selectedPerson.maskedAadhaar;
   const roleName = user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || 'Citizen';
-  
-  const details = {
-    name: "Aanya Sharma",
-    dob: "12/08/1990",
-    address: "New Delhi, DL"
-  };
+  const details = selectedPerson;
 
   return (
     <div className="aadhaar-profile">
@@ -81,13 +79,15 @@ export default function Navbar({ user, onLogout }) {
   const [scrolled, setScrolled] = useState(false);
   const [time, setTime] = useState(new Date());
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-
+  // Logout process handle ho raha hai, verification aur cleanup ke baad redirect ho jayega
   const handleLogoutClick = async () => {
+    setShowLogoutConfirm(false);
     setIsLoggingOut(true);
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 1200));
     onLogout();
     setIsLoggingOut(false);
     navigate('/');
@@ -125,7 +125,7 @@ export default function Navbar({ user, onLogout }) {
     <FullScreenLoader isVisible={isLoggingOut} text="Securing Session..." />
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <div className="navbar__inner">
-        {/* Logo */}
+        {/* Logo aur Brand identity yahan hai */}
         <div className="navbar__brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <div className="navbar__logo-mark">
             <span className="navbar__logo-icon">◈</span>
@@ -152,7 +152,7 @@ export default function Navbar({ user, onLogout }) {
               Tenders
             </button>
 
-            {/* Dynamic Context-Aware Dashboard Links */}
+            {/* Role ke mutabiq dynamic links yahan filter ho rahe hain */}
             {showAdminLink && (
               <button
                 className={`navbar__nav-link navbar__nav-link--admin ${isActive('/admin') ? 'navbar__nav-link--active' : ''}`}
@@ -201,9 +201,19 @@ export default function Navbar({ user, onLogout }) {
           {user ? (
             <div className="navbar__user">
               <AadhaarProfile user={user} />
-              <button className="navbar__logout-btn" onClick={handleLogoutClick}>
-                Logout
-              </button>
+              <div className="navbar__logout-group">
+                {showLogoutConfirm ? (
+                  <div className="navbar__logout-confirm-pop">
+                    <span>End Session?</span>
+                    <button className="navbar__confirm-btn" onClick={handleLogoutClick}>Yes</button>
+                    <button className="navbar__cancel-btn" onClick={() => setShowLogoutConfirm(false)}>No</button>
+                  </div>
+                ) : (
+                  <button className="navbar__logout-btn" onClick={() => setShowLogoutConfirm(true)}>
+                    Logout
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <button
@@ -224,4 +234,3 @@ export default function Navbar({ user, onLogout }) {
     </>
   );
 }
->>>>>>> bb97d8c (full logic flow is working (hopefully))

@@ -2,23 +2,22 @@ from sqlalchemy import text
 from database import engine
 
 def migrate():
-    # ye script database ke missing columns add karne ke liye hai
     with engine.connect() as conn:
-        print("Contractors table mein naye columns add karinge...")
+        print("Adding missing columns to 'contractors' table...")
         cols = [
             ("registration_id", "VARCHAR"),
             ("specialty", "VARCHAR"),
             ("license_no", "VARCHAR"),
             ("location", "VARCHAR")
         ]
-        for col, t in cols:
+        for col, type_ in cols:
             try:
-                conn.execute(text(f"ALTER TABLE contractors ADD COLUMN {col} {t};"))
-                print(f"✓ Added column: {col}")
-            except:
-                print(f"! skip {col} (exist ho sakti hai)")
+                conn.execute(text(f"ALTER TABLE contractors ADD COLUMN {col} {type_};"))
+                print(f"✓ Added {col}")
+            except Exception as e:
+                print(f"! Could not add {col}: {e}")
         
-        # metadata table for tender notes
+        print("\nCreating 'tender_metadata' table if not exists...")
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS tender_metadata (
                 tender_address VARCHAR PRIMARY KEY,
@@ -27,7 +26,7 @@ def migrate():
             );
         """))
 
-        # approvals table for multisig signs
+        print("\nCreating 'milestone_approvals' table if not exists...")
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS milestone_approvals (
                 id SERIAL PRIMARY KEY,
@@ -40,8 +39,18 @@ def migrate():
             );
         """))
 
+        print("\nEnsuring 'signature' column exists in 'milestone_approvals'...")
+        try:
+            conn.execute(text("ALTER TABLE milestone_approvals ADD COLUMN signature VARCHAR;"))
+            print("✓ Added signature column")
+        except Exception as e:
+            if "already exists" in str(e).lower():
+                print("✓ Column 'signature' already exists.")
+            else:
+                print(f"! Error adding signature column (may already exist or table missing): {e}")
+
         conn.commit()
-    print("Migration complete successfully!")
+    print("Migration complete.")
 
 if __name__ == "__main__":
     migrate()

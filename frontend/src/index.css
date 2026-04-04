@@ -4,26 +4,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
 :root {
-<<<<<<< HEAD
-  --primary: #1a1b1e;
-  --secondary: #2c2e33;
-  --accent: #f8f9fa;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: var(--primary);
-  color: var(--accent);
-}
-
-/* global styles yahan aayengi saari */
-/* irregular spacing for human coding */
-.app {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-=======
   /* ── Core Palette (Mapped from Pink to requested palette) ── */
   --pink-50:  #eaefd7;
   --pink-100: #dbe3c0;
@@ -224,5 +204,4 @@ ul, ol {
 ::selection {
   background: var(--pink-200);
   color: var(--pink-900);
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

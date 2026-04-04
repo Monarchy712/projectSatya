@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/tenders", tags=["Tenders"])
 
 @router.get("/list", response_model=List[TenderDetail])
 def list_tenders():
-    """Returns all tenders aggregated from the blockchain with full bid/milestone details."""
+    # Blockchain se saare tenders (milestones and bids) ki list fetch kar rahe hain
     try:
         data = get_all_tenders_aggregated()
         return data
@@ -16,7 +16,7 @@ def list_tenders():
 
 @router.get("/{address}", response_model=TenderDetail)
 def get_tender(address: str):
-    """Returns deep details for a single tender address."""
+    # Kisi specific tender ki details nikaalne ke liye yeh endpoint use hota hai
     try:
         data = get_tender_details(address)
         return data

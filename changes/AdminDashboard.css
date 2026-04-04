@@ -1,37 +1,5 @@
 /* ── Admin Dashboard Refinements ── */
 .admin-dashboard {
-<<<<<<< HEAD
-    min-height: 100vh;
-    background: linear-gradient(135deg, var(--gray-50) 0%, var(--ivory) 50%, var(--cream) 100%);
-    padding: 100px var(--space-xl) var(--space-3xl);
-}
-
-/* Header logic yahan handle karinge */
-.admin-header {
-    max-width: 960px;
-    margin: 0 auto var(--space-xl);
-    display: flex;
-    gap: var(--space-lg);
-}
-
-/* Milestone headers fix logic (Overlapping) */
-.admin-form__milestone-header {
-    display: flex;
-    font-size: 0.72rem;
-    font-weight: 800;
-}
-
-.admin-form__header-col--num { width: 34px; margin-right: var(--space-md); }
-.admin-form__header-col--name { flex: 2.2; }
-.admin-form__header-col--pct { width: 80px; margin: 0 var(--space-md); }
-.admin-form__header-col--date { flex: 1.5; }
-
-.admin-form__milestone-row {
-    display: flex;
-    gap: var(--space-md);
-    background: var(--pink-50);
-    border: 1.5px solid var(--pink-400);
-=======
   min-height: 100vh;
   background: linear-gradient(135deg, var(--gray-50) 0%, var(--ivory) 50%, var(--cream) 100%);
   padding: 100px var(--space-xl) var(--space-3xl);
@@ -329,5 +297,4 @@
 .admin-tender-card__info-btn:hover .admin-tender-card__tooltip {
   opacity: 1;
   transform: translateX(-50%) translateY(-5px);
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

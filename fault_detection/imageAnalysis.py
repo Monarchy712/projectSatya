@@ -7,22 +7,7 @@ def detect_faults(image_path):
 
   img = Image.open(image_path)
 
-<<<<<<< HEAD
-    # roboflow client setup
-    # API key load karke model call karinge
-    with open('api_key.txt', 'r') as f:
-        api_key = f.read()
-
-    # detect construction defects logic
-    print(f"Analyzing image at {image_path} for construction defects...")
-    
-    # simulation for results
-    results = {"predictions": [{"class": "crack", "confidence": 0.88}]}
-    
-    return results
-=======
   img.show()
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 
   with open('api_key.txt', 'r') as f:
     api_key = f.read()

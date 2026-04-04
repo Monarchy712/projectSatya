@@ -1,58 +1,5 @@
 /* ── Hero Section ── */
 .hero {
-<<<<<<< HEAD
-    position: relative;
-    min-height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: var(--cream);
-}
-
-/* Background grid logic yahan handle karinge */
-.hero__bg-grid {
-    position: absolute;
-    inset: 0;
-    background-size: 40px 40px;
-    background-image: linear-gradient(to right, rgba(230, 57, 117, 0.05) 1px, transparent 1px);
-}
-
-/* Eyebrow styling logic for premium feel */
-.hero__eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--pink-600);
-    background: var(--white);
-    padding: 8px 16px;
-    border-radius: var(--radius-pill);
-}
-
-.hero__title-line {
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 10vw, 8rem);
-    font-weight: 900;
-    color: var(--pink-700);
-    text-shadow: 4px 4px 0px var(--pink-100);
-}
-
-/* Stats bar logic yahan sync karinge source se */
-.hero__stats {
-    display: flex;
-    background: var(--white);
-    border-radius: var(--radius-xl);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-xl);
-}
-
-/* Ticker logic yahan handle karinge for footer */
-.hero__ticker {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: var(--pink-900);
-    color: var(--pink-100);
-=======
   position: relative;
   min-height: calc(100vh - 64px); /* Account for navbar */
   display: flex;
@@ -279,15 +226,16 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: 16px 32px;
+  padding: 18px 40px;
+  margin: var(--space-xl) 0 var(--space-2xl);
   background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
   color: var(--white);
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
   border-radius: var(--radius-pill);
-  box-shadow: 0 8px 16px rgba(230, 57, 117, 0.3);
+  box-shadow: 0 10px 20px rgba(230, 57, 117, 0.3);
   transition: all var(--duration-medium) var(--ease-bounce);
   text-decoration: none;
 }
@@ -353,5 +301,4 @@
   .hero__stat {
     flex-basis: 40%;
   }
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

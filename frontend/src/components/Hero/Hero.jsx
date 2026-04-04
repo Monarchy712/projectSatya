@@ -1,23 +1,5 @@
 import './Hero.css';
 
-<<<<<<< HEAD
-function Hero(props) {
-    // main hero section with stats
-    const { stats } = props;
-    
-    return (
-        <section className="hero">
-            <h1 className="hero__title">Transparency at its core</h1>
-            <div className="hero__stats">
-                <div className="stat">Total Tenders: {stats?.total || 12}</div>
-                <div className="stat">Active Projects: {stats?.active || 8}</div>
-            </div>
-        </section>
-    );
-}
-
-export default Hero;
-=======
 export default function Hero({ stats }) {
   const formatCurrency = (n) => {
     if (n >= 1e9) return `₹${(n / 1e9).toFixed(1)}B`;
@@ -28,7 +10,7 @@ export default function Hero({ stats }) {
 
   return (
     <section className="hero" id="hero">
-      {/* Decorative background elements */}
+      {/* Background ke visuals aur grid animations yahan hain */}
       <div className="hero__bg-grid" />
       <div className="hero__bg-circle hero__bg-circle--1" />
       <div className="hero__bg-circle hero__bg-circle--2" />
@@ -46,12 +28,12 @@ export default function Hero({ stats }) {
           <span className="hero__title-sub">Transparency Ledger</span>
         </h1>
 
-        <p className="hero__description">
-          An open, immutable record of every government contract — who builds, what they build,
-          and how public money flows. <em>Truth in every transaction.</em>
-        </p>
+        <a href="#ledger" className="hero__cta">
+          <span>VIEW LEDGER</span>
+          <span className="hero__cta-arrow">↓</span>
+        </a>
 
-        {/* Stats bar */}
+        {/* Blockchain stats summary bar */}
         <div className="hero__stats">
           <div className="hero__stat">
             <span className="hero__stat-number">{stats.totalContractors}</span>
@@ -74,7 +56,7 @@ export default function Hero({ stats }) {
           </div>
         </div>
 
-        {/* Status pills */}
+        {/* Ongoing, Pending aur Completed projects ke status pills */}
         <div className="hero__status-row">
           <div className="hero__status-pill hero__status-pill--ongoing">
             <span className="hero__status-dot hero__status-dot--ongoing" />
@@ -90,13 +72,10 @@ export default function Hero({ stats }) {
           </div>
         </div>
 
-        <a href="#ledger" className="hero__cta">
-          <span>VIEW LEDGER</span>
-          <span className="hero__cta-arrow">↓</span>
-        </a>
+
       </div>
 
-      {/* Retro terminal tape */}
+      {/* Niche wala scrolling "live feed" ticker */}
       <div className="hero__ticker">
         <div className="hero__ticker-track">
           <span>◈ SATYA TRANSPARENCY LEDGER — LIVE DATA FEED ◈ LAST UPDATED: {new Date(stats.lastUpdated).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ◈ ALL RECORDS VERIFIED ◈ PUBLIC ACCESS ENABLED ◈ SATYA TRANSPARENCY LEDGER — LIVE DATA FEED ◈ LAST UPDATED: {new Date(stats.lastUpdated).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ◈ ALL RECORDS VERIFIED ◈ PUBLIC ACCESS ENABLED ◈</span>
@@ -105,4 +84,3 @@ export default function Hero({ stats }) {
     </section>
   );
 }
->>>>>>> bb97d8c (full logic flow is working (hopefully))

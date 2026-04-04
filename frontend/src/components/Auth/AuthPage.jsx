@@ -3,164 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { sendAadhaarOTP, verifyAadhaarOTP, walletConnect, walletVerify } from '../../utils/api';
 import { isMetaMaskInstalled, connectMetaMask, signMessage } from '../../utils/metamask';
-<<<<<<< HEAD
-import './AuthPage.css';
-
-const STEPS = { AADHAAR: 'aadhaar', OTP: 'otp', WALLET_SIGNING: 'wallet_signing' };
-
-export default function AuthPage() {
-    const { login } = useAuth();
-    const navigate = useNavigate();
-
-    // ── Local State ──
-    const [step, setStep] = useState(STEPS.AADHAAR);
-    const [aadhaar, setAadhaar] = useState('');
-    const [otp, setOtp] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [walletAddress, setWalletAddress] = useState('');
-    const [walletMessage, setWalletMessage] = useState('');
-    const [walletRole, setWalletRole] = useState('');
-
-    const handleSendOTP = async (e) => {
-        e.preventDefault();
-        const cleaned = aadhaar.replace(/\s/g, '');
-        if (cleaned.length !== 12) {
-            setError('Valid 12-digit Aadhaar number chahiye.');
-            return;
-        }
-        setError('');
-        setLoading(true);
-
-        try {
-            await sendAadhaarOTP(cleaned);
-            setStep(STEPS.OTP);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVerifyOTP = async (e) => {
-        e.preventDefault();
-        if (otp.length !== 4) {
-            setError('OTP exact 4 digits ka hona chahiye.');
-            return;
-        }
-        setError('');
-        setLoading(true);
-
-        try {
-            const cleaned = aadhaar.replace(/\s/g, '');
-            const res = await verifyAadhaarOTP(cleaned, otp);
-            login(res.access_token, { role: res.role, name: res.name });
-            navigate('/');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleWalletConnect = async (role) => {
-        if (!isMetaMaskInstalled()) {
-            setError('MetaMask missing hai, please install karinge.');
-            return;
-        }
-        setError('');
-        setLoading(true);
-        try {
-            const address = await connectMetaMask();
-            setWalletAddress(address);
-            const res = await walletConnect(address);
-            setWalletRole(res.role);
-            setWalletMessage(res.message);
-            setStep(STEPS.WALLET_SIGNING);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleWalletSign = async () => {
-        setError('');
-        setLoading(true);
-        try {
-            const signature = await signMessage(walletMessage);
-            const res = await walletVerify(walletAddress, signature);
-            login(res.access_token, {
-                role: res.role,
-                name: res.name,
-                wallet: walletAddress
-            });
-            navigate('/');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="auth-page">
-            <div className="auth-container">
-                <h1 className="auth-title">सत्य Login</h1>
-                
-                {step === STEPS.AADHAAR && (
-                    <div className="auth-card">
-                        <h2>Aadhaar Login</h2>
-                        <input 
-                            className="auth-input"
-                            type="text" 
-                            placeholder="XXXX XXXX XXXX" 
-                            value={aadhaar}
-                            onChange={(e) => setAadhaar(e.target.value)}
-                        />
-                        {error && <p className="error">{error}</p>}
-                        <button className="btn" onClick={handleSendOTP} disabled={loading}>
-                            {loading ? 'Wait...' : 'Send OTP'}
-                        </button>
-                        <div className="divider">or</div>
-                        <button className="btn btn-alt" onClick={() => handleWalletConnect('contractor')}>
-                             Wallet Login (Contractor/Admin)
-                        </button>
-                    </div>
-                )}
-
-                {step === STEPS.OTP && (
-                    <div className="auth-card">
-                        <h2>Enter OTP</h2>
-                        <input 
-                            className="auth-input"
-                            type="text" 
-                            placeholder="• • • •" 
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                        />
-                        {error && <p className="error">{error}</p>}
-                        <button className="btn" onClick={handleVerifyOTP} disabled={loading}>
-                            Verify OTP
-                        </button>
-                    </div>
-                )}
-
-                {step === STEPS.WALLET_SIGNING && (
-                    <div className="auth-card">
-                        <h2>Wallet Verify</h2>
-                        <p>Address: {walletAddress.slice(0,6)}...{walletAddress.slice(-4)}</p>
-                        <p>Detected Role: {walletRole}</p>
-                        {error && <p className="error">{error}</p>}
-                        <button className="btn" onClick={handleWalletSign} disabled={loading}>
-                            Sign with MetaMask 🦊
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-=======
 import FullScreenLoader from '../UI/FullScreenLoader';
 import './AuthPage.css';
 
@@ -170,7 +12,7 @@ export default function AuthPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // ── State ──
+  // Authentication ke steps yahan state me maintain ho rahe hain
   const [step, setStep] = useState(STEPS.AADHAAR);
   const [aadhaar, setAadhaar] = useState('');
   const [otp, setOtp] = useState('');
@@ -184,7 +26,7 @@ export default function AuthPage() {
   const [pageLoadingVisible, setPageLoadingVisible] = useState(false);
   const [pageLoadingText, setPageLoadingText] = useState('Loading...');
 
-  // ── Aadhaar format helper ──
+  // Aadhaar number ko standard visual format (XXXX XXXX XXXX) me convert karne ke liye
   const formatAadhaar = (val) => {
     const digits = val.replace(/\D/g, '').slice(0, 12);
     return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
@@ -261,7 +103,7 @@ export default function AuthPage() {
     }
   };
 
-  // ── MetaMask Sign & Verify ──
+  // MetaMask wallet connect karke message sign karwane ki logic
   const handleWalletSign = async () => {
     setError('');
     
@@ -304,7 +146,7 @@ export default function AuthPage() {
         ← Back to Home
       </button>
       <div className="auth-container">
-        {/* Header / Graphic Left Side */}
+        {/* Left side ka animated "Satya" logo and graphics */}
         <div className="auth-header">
           <div className="auth-header__graphic">
             {/* Animated Geometry */}
@@ -330,40 +172,42 @@ export default function AuthPage() {
                 Enter your 12-digit Aadhaar number to receive a one-time password
               </p>
 
-              <div className="auth-input-group">
-                <label className="auth-label">Aadhaar Number</label>
-                <input
-                  id="aadhaar-input"
-                  className="auth-input"
-                  type="text"
-                  placeholder="XXXX XXXX XXXX"
-                  value={aadhaar}
-                  onChange={(e) => setAadhaar(formatAadhaar(e.target.value))}
-                  maxLength={14}
-                  autoFocus
-                />
-              </div>
+              <form onSubmit={handleSendOTP}>
+                <div className="auth-input-group">
+                  <label className="auth-label">Aadhaar Number</label>
+                  <input
+                    id="aadhaar-input"
+                    className="auth-input"
+                    type="text"
+                    placeholder="XXXX XXXX XXXX"
+                    value={aadhaar}
+                    onChange={(e) => setAadhaar(formatAadhaar(e.target.value))}
+                    maxLength={14}
+                    autoFocus
+                  />
+                </div>
 
-              {error && <div className="auth-error">{error}</div>}
+                {error && <div className="auth-error">{error}</div>}
 
-              <button
-                id="send-otp-btn"
-                className="auth-btn auth-btn--primary"
-                onClick={handleSendOTP}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="auth-btn__spinner" />
-                ) : (
-                  <>Send OTP</>
-                )}
-              </button>
+                <button
+                  id="send-otp-btn"
+                  className="auth-btn auth-btn--primary"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="auth-btn__spinner" />
+                  ) : (
+                    <>Send OTP</>
+                  )}
+                </button>
+              </form>
 
               <div className="auth-divider">
                 <span>or verify as</span>
               </div>
 
-              {/* ── Bottom-right wallet buttons ── */}
+              {/* Contractor aur Admin login ke liye wallet connection buttons */}
               <div className="auth-wallet-btns">
                 <button
                   id="contractor-login-btn"
@@ -398,7 +242,7 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* ── OTP Step ── */}
+          {/* OTP enter karne wala step */}
           {step === STEPS.OTP && (
             <div className="auth-step auth-step--fade-in">
               <button className="auth-back" onClick={handleBack}>← Back</button>
@@ -407,34 +251,36 @@ export default function AuthPage() {
                 A one-time password has been sent to the mobile number linked with your Aadhaar
               </p>
 
-              <div className="auth-input-group">
-                <label className="auth-label">One-Time Password</label>
-                <input
-                  id="otp-input"
-                  className="auth-input auth-input--otp"
-                  type="text"
-                  placeholder="• • • •"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  maxLength={4}
-                  autoFocus
-                />
-              </div>
+              <form onSubmit={handleVerifyOTP}>
+                <div className="auth-input-group">
+                  <label className="auth-label">One-Time Password</label>
+                  <input
+                    id="otp-input"
+                    className="auth-input auth-input--otp"
+                    type="text"
+                    placeholder="• • • •"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    maxLength={4}
+                    autoFocus
+                  />
+                </div>
 
-              {error && <div className="auth-error">{error}</div>}
+                {error && <div className="auth-error">{error}</div>}
 
-              <button
-                id="verify-otp-btn"
-                className="auth-btn auth-btn--primary"
-                onClick={handleVerifyOTP}
-                disabled={loading}
-              >
-                {loading ? <span className="auth-btn__spinner" /> : <>Verify & Sign In</>}
-              </button>
+                <button
+                  id="verify-otp-btn"
+                  className="auth-btn auth-btn--primary"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? <span className="auth-btn__spinner" /> : <>Verify & Sign In</>}
+                </button>
+              </form>
             </div>
           )}
 
-          {/* ── Wallet Verification Step ── */}
+          {/* Wallet verification aur signing wala final step */}
           {step === STEPS.WALLET_SIGNING && (
             <div className="auth-step auth-step--fade-in auth-step--center">
               <div className="auth-step__header">
@@ -462,21 +308,23 @@ export default function AuthPage() {
 
               {error && <div className="auth-error">{error}</div>}
 
-              <button
-                id="sign-message-btn"
-                className="auth-btn auth-btn--primary auth-btn--metamask"
-                onClick={handleWalletSign}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="auth-btn__spinner" />
-                ) : (
-                  <>
-                    <span className="auth-btn__fox">🦊</span>
-                    Sign with MetaMask
-                  </>
-                )}
-              </button>
+              <form onSubmit={(e) => { e.preventDefault(); handleWalletSign(); }}>
+                <button
+                  id="sign-message-btn"
+                  className="auth-btn auth-btn--primary auth-btn--metamask"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="auth-btn__spinner" />
+                  ) : (
+                    <>
+                      <span className="auth-btn__fox">🦊</span>
+                      Sign with MetaMask
+                    </>
+                  )}
+                </button>
+              </form>
             </div>
           )}
         </div>
@@ -484,5 +332,4 @@ export default function AuthPage() {
     </div>
     </>
   );
->>>>>>> bb97d8c (full logic flow is working (hopefully))
 }

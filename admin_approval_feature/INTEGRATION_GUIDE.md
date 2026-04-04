@@ -1,12 +1,5 @@
 # Admin Approval Feature — Integration Guide
 
-<<<<<<< HEAD
-Abe yahan governance feature logic karinge sync.
-This folder contains a self-sufficient feature bundle for the **Admin Approval Panel**.
-...[Content synced]...
-### Done! 🎉 
-Component will automatically handle fetching its own data.
-=======
 Hello! This folder contains a self-sufficient feature bundle for the **Admin Approval Panel**, built adhering precisely to the retro transparency style guidelines of the Satya ledger. It respects wallet access control and gracefully handles unauthenticated views.
 
 Currently, it lives in the root as requested to avoid conflicts with your ongoing development. Here are the steps the local Antigravity (or any teammate) should follow to integrate it into the `frontend/src`:
@@ -54,4 +47,3 @@ import AdminApprovalPanel from '../AdminApproval/AdminApprovalPanel';
 
 ### Done! 🎉 
 The component will automatically handle fetching its own data, ensuring the wallet belongs to an admin, and triggering success toasts.
->>>>>>> bb97d8c (full logic flow is working (hopefully))

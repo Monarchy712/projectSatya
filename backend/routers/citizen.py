@@ -14,10 +14,7 @@ _otp_sessions: set[str] = set()
 
 @router.post("/send-otp", response_model=MessageResponse)
 def send_otp(payload: AadhaarSendOTP):
-    """
-    Dummy Aadhaar OTP send. 
-    Now checks if the Aadhaar is banned on the blockchain BEFORE sending the OTP.
-    """
+    # Aadhaar number check kar rahe hain blockchain par, agar banned hai toh OTP nahi bhejenge
     cleaned_aadhaar = payload.aadhaar_number.replace(" ", "")
     
     # 🚨 Early Blockchain Check: Is this identity already banned?
@@ -42,10 +39,7 @@ def send_otp(payload: AadhaarSendOTP):
 
 @router.post("/verify-otp", response_model=TokenResponse)
 def verify_otp(payload: AadhaarVerifyOTP):
-    """
-    Dummy OTP verification. OTP is always 5334.
-    On success, returns a JWT with role=citizen.
-    """
+    # OTP verify ho raha hai. Sahi hone par JWT token (role: citizen) return karega.
     cleaned_aadhaar = payload.aadhaar_number.replace(" ", "")
 
     if cleaned_aadhaar not in _otp_sessions:
@@ -60,8 +54,7 @@ def verify_otp(payload: AadhaarVerifyOTP):
     # Remove from sessions after successful verification
     _otp_sessions.discard(cleaned_aadhaar)
 
-    # 🚨 Blockchain Check: Is this identity banned?
-    # Using the unique Aadhaar number for individual banning
+    # Verification se pehle firse check kar rahe hain ki user banned toh nahi
     identity_hash = get_identity_hash(cleaned_aadhaar)
     if contract:
         try:

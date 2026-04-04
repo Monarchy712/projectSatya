@@ -13,7 +13,7 @@ from blockchain import (
 router = APIRouter(tags=["Admin & Oversight Tasks"])
 
 
-# ── Schemas ──
+# Yahan signatures handle karne ke liye schemas define ho rahe hain
 
 class SignMilestonePayload(BaseModel):
     tender_address: str
@@ -30,7 +30,7 @@ def has_signed(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ):
-    """Check if the current committee member has already signed this milestone."""
+    # Check kar rahe hain ki is committee member ne pehle sign kiya hai ya nahi
     if user["role"] not in ["committee"]:
         raise HTTPException(status_code=403, detail="Only committee members can access this")
     
@@ -50,7 +50,7 @@ def get_signatures(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ):
-    """Get the current signature count for a milestone."""
+    # Milestone ke liye kitne signatures aa chuke hain, wo check ho raha hai
     if user["role"] not in ["committee", "super_admin"]:
         raise HTTPException(status_code=403, detail="Not authorized")
 
@@ -61,7 +61,7 @@ def get_signatures(
 
     count = len(sigs)
 
-    # Automatically trigger execution if not already done and we have 4 sigs
+    # Agar 4 signatures pure ho gaye hain, toh automation se on-chain transaction trigger kar rahe hain
     executed = is_milestone_executed(tender_address, milestone_id)
     if not executed and count >= 4:
         try:
@@ -87,10 +87,7 @@ def sign_milestone(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ):
-    """
-    Store an EIP-712 signature from a committee member.
-    When 4/4 signatures are collected, automatically calls executeMilestone on-chain.
-    """
+    # Committee member ka signature save kar rahe hain. 4/4 hone par contract execute ho jayega.
     if user["role"] not in ["committee"]:
         raise HTTPException(status_code=403, detail="Only committee members can sign")
     
@@ -136,7 +133,7 @@ def sign_milestone(
         db.add(approval)
         db.commit()
 
-    # 3. Check for 4/4 sigs and attempt execution
+    # 4 signatures complete? Agar haan, toh fund release (execution) start kar do
     all_sigs = db.query(MilestoneApproval).filter(
         MilestoneApproval.tender_address == tender_addr,
         MilestoneApproval.milestone_id == milestone_id,
@@ -186,10 +183,7 @@ def trigger_milestone_execution(
     db: Session = Depends(get_db),
     user: dict = Depends(get_current_user),
 ):
-    """
-    Manually trigger on-chain execution if 4/4 signatures are already collected.
-    Uses the government signer to pay gas.
-    """
+    # Jab signatures manually verify karke execute karna ho, yeh endpoint kaam aata hai
     if user["role"] not in ["committee", "super_admin"]:
         raise HTTPException(status_code=403, detail="Not authorized")
 
@@ -231,7 +225,7 @@ def _get_sig_count(db: Session, tender_addr: str, milestone_id: int) -> int:
     ).count()
 
 
-# ── Admin Selection Notes ──
+# Admin ke diye huye selection notes yahan save aur fetch hote hain
 
 @router.post("/api/admin/tender-note")
 def save_tender_note(
