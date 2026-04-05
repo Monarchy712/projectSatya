@@ -9,7 +9,10 @@
   backdrop-filter: blur(16px) saturate(1.5);
   -webkit-backdrop-filter: blur(16px) saturate(1.5);
   border-bottom: 1px solid var(--pink-100);
-  transition: all var(--duration-medium) var(--ease-out);
+  transition: background var(--duration-medium) var(--ease-out), box-shadow var(--duration-medium) var(--ease-out), border-color var(--duration-medium) var(--ease-out);
+  will-change: transform;
+  isolation: isolate;
+  transform: translateZ(0);
 }
 
 .navbar--scrolled {
@@ -113,7 +116,7 @@
 .navbar__nav-link:hover {
   color: var(--pink-700);
   background: rgba(113, 139, 77, 0.08); /* slight green/gold */
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(113, 139, 77, 0.15);
 }
 
 .navbar__nav-link--active {
@@ -125,7 +128,6 @@
 .navbar__nav-link--active:hover {
   background: var(--pink-600);
   color: var(--white);
-  transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(113, 139, 77, 0.25);
 }
 
@@ -402,7 +404,7 @@
 
 .navbar__logout-btn:hover {
   background: rgba(255, 107, 107, 0.2);
-  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
 }
 
 .navbar__logout-group {
@@ -515,11 +517,10 @@
 
 .navbar__login-btn:hover {
   background: linear-gradient(135deg, var(--pink-500), var(--pink-700));
-  transform: translateY(-3px) scale(1.05);
   box-shadow: 0 8px 25px rgba(230, 57, 117, 0.4);
   letter-spacing: 0.15em;
 }
 
 .navbar__login-btn:active {
-  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(230, 57, 117, 0.2);
 }

@@ -1,7 +1,7 @@
 .report-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(254, 232, 217, 0.75); /* cream semi-transparent */
+  background: rgba(254, 232, 217, 0.75);
   backdrop-filter: blur(12px) saturate(1.2);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   z-index: 10000;
@@ -10,23 +10,26 @@
   justify-content: center;
   padding: var(--space-md);
   animation: fadeIn 0.3s ease;
+  will-change: transform;
+  transform: translateZ(0);
+  isolation: isolate;
+  overflow-y: auto;
 }
 
 .report-modal {
   background: var(--white);
   border: 1px solid var(--pink-100);
   border-radius: var(--radius-2xl);
-  padding: var(--space-2xl);
+  padding: var(--space-lg);
   width: 100%;
   max-width: 580px;
-  max-height: 90vh;
-  overflow-y: auto;
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-md);
   position: relative;
   animation: fadeInUp 0.5s var(--ease-out);
+  overflow: visible;
 }
 
 .report-modal--success {
