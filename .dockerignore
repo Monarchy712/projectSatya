@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+backend/venv
+backend/__pycache__
+frontend/node_modules
+frontend/dist
+*.db
+README.md
+implementation_plan.md
+task.md
+walkthrough.md
+package-lock.json
+# Root files removed in thorough cleanup:
+# context.txt, status.txt, requirements.txt, etc.

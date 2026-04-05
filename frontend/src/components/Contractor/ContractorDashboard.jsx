@@ -27,7 +27,7 @@ export default function ContractorDashboard() {
   async function loadContractorData() {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8000/api/tenders/list');
+      const response = await axios.get('/api/tenders/list');
       const allTenders = response.data;
       
       const myAddress = user.wallet.toLowerCase();
@@ -180,7 +180,7 @@ export default function ContractorDashboard() {
                                     </div>
                                  </div>
                                  
-                                 {isPending && idx === t.current_milestone && !t.dispute?.reason && (
+                                 {isPending && idx === t.current_milestone && !(t.dispute?.reason && t.dispute?.milestone_id === t.current_milestone) && (
                                    <div style={{ display: 'flex', gap: '10px' }}>
                                      <button 
                                        className="contractor-milestone-btn"
@@ -197,7 +197,7 @@ export default function ContractorDashboard() {
                                      </button>
                                    </div>
                                  )}
-                                 {t.dispute?.reason && idx === t.current_milestone && (
+                                 {t.dispute?.reason && t.dispute?.milestone_id === t.current_milestone && idx === t.current_milestone && (
                                    <span className="contractor-milestone-indicator" style={{color: 'var(--pink-500)'}}>Active Conflict Under Review</span>
                                  )}
                                  {isSubmitted && <span className="contractor-milestone-indicator" style={{color: 'var(--status-review)'}}>Oversight Review</span>}

@@ -76,7 +76,7 @@ export default function OversightDashboard() {
           let offchainSigned = false;
           try {
             const hasSignedRes = await fetch(
-              `http://localhost:8000/api/committee/has-signed?tender_address=${tAddr}&milestone_id=${mIdx}`,
+              `/api/committee/has-signed?tender_address=${tAddr}&milestone_id=${mIdx}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (hasSignedRes.ok) {
@@ -92,7 +92,7 @@ export default function OversightDashboard() {
           let sigCount = 0;
           try {
             const res = await fetch(
-              `http://localhost:8000/api/committee/signatures?tender_address=${tAddr}&milestone_id=${mIdx}`,
+              `/api/committee/signatures?tender_address=${tAddr}&milestone_id=${mIdx}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (res.ok) {
@@ -107,7 +107,7 @@ export default function OversightDashboard() {
           let balance = '0';
           let tenderName = null, tenderDesc = null, createdByDept = null, lat = null, lng = null;
           try {
-            const bres = await fetch(`http://localhost:8000/api/tenders/${tAddr}`, {
+            const bres = await fetch(`/api/tenders/${tAddr}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
             if (bres.ok) {
@@ -129,31 +129,39 @@ export default function OversightDashboard() {
           let disputeObj = null;
           try {
             const dState = await tender.dispute();
-            if (dState[1] !== "") { // Has reason
+            const dMilestoneId = Number(dState[0]);
+            const dReason = dState[1];
+            const dResolved = dState[5];
+
+            // Only process if there is a reason AND it belongs to the current milestone
+            if (dReason !== "" && dMilestoneId === mIdx) {
                let isVoter = false;
                let hasVoted = false;
-               if (!dState[4]) {
-                  // Active dispute
+               
+               if (!dResolved) {
+                  // Active dispute logic
                   hasVoted = await tender.hasVoted(user.wallet);
                   if (hasVoted) {
                     isVoter = true;
                   } else {
+                    // Check if user is in any role pool by simulating a vote
                     try {
-                      await tender.vote.staticCall(true, { gasLimit: 300000 });
-                      isVoter = true; // No revert means they can vote
+                      await tender.vote.staticCall(2, { gasLimit: 300000 }); // Choice 2 is Neutral
+                      isVoter = true;
                     } catch (e) {
                       if (e.message && e.message.includes("Already voted")) isVoter = true;
                       else isVoter = false;
                     }
                   }
                }
+               
                disputeObj = {
-                 milestoneId: Number(dState[0]),
-                 reason: dState[1],
+                 milestoneId: dMilestoneId,
+                 reason: dReason,
                  votesForGov: Number(dState[2]),
                  votesForContractor: Number(dState[3]),
                  votesForNone: Number(dState[4]),
-                 resolved: dState[5],
+                 resolved: dResolved,
                  isVoter,
                  hasVoted
                };
@@ -208,7 +216,7 @@ export default function OversightDashboard() {
       const signature = await signMilestoneApproval(signer, tenderAddr, milestoneId);
 
       // 3. Send signature to backend for accumulation
-      const res = await fetch('http://localhost:8000/api/committee/sign', {
+      const res = await fetch('/api/committee/sign', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -247,7 +255,7 @@ export default function OversightDashboard() {
     setToast('');
     setError('');
     try {
-      const res = await fetch('http://localhost:8000/api/committee/execute', {
+      const res = await fetch('/api/committee/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
